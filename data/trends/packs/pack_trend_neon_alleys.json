@@ -1,0 +1,14 @@
+{
+  "blurb": "Featured this week. Free to play.",
+  "free": true,
+  "id": "trend_neon_alleys",
+  "is_popular": false,
+  "name": "Neon Alleys",
+  "order": 4,
+  "palette": 3,
+  "popularity_score": 57,
+  "schema_version": 1,
+  "symbols": 8,
+  "tempo": 0.95,
+  "week": "2026-W31"
+}

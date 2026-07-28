@@ -1,0 +1,67 @@
+name: Generate weekly trend packs
+
+# Sundays at 00:00 UTC, plus a manual trigger for testing and for re-running
+# a week that failed.
+on:
+  schedule:
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+    inputs:
+      week:
+        description: "ISO week override, e.g. 2026-W31 (blank = current week)"
+        required: false
+        default: ""
+
+# Least privilege: the job commits to its own branch and does nothing else.
+permissions:
+  contents: write
+
+# A scheduled run and a manual run must never race each other into the same
+# branch — the second push would fail on a stale ref.
+concurrency:
+  group: generate-trends
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        # `openai` is installed because the roadmap calls for it, but the
+        # generator does NOT currently use it — see the module docstring: packs
+        # carry themes, not authored trivia, so no model is invoked and no API
+        # key is required for this job to succeed.
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests openai
+
+      - name: Generate packs
+        run: |
+          python scripts/generate_weekly_packs.py ${{ github.event.inputs.week && format('--week {0}', github.event.inputs.week) || '' }}
+
+      - name: Validate output
+        # Re-validate what actually landed on disk, not just what the
+        # generator believed it wrote. A truncated write or a bad path would
+        # otherwise be committed and only fail later, on a player's device.
+        run: python scripts/validate_output.py
+
+      - name: Commit generated packs
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(content): weekly trend packs"
+          file_pattern: "index.json packs/*.json"
+          commit_user_name: trend-pipeline[bot]
+          commit_user_email: trend-pipeline@users.noreply.github.com
+        # No `if` guard needed: the action is a no-op when nothing changed,
+        # and the generator is deterministic per week, so an unchanged roster
+        # produces no commit at all.

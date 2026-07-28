@@ -1,0 +1,188 @@
+[gd_scene load_steps=2 format=3 uid="uid://c2swtrialres01"]
+
+[ext_resource type="Script" path="res://nodes/trial_results_controller.gd" id="1_results"]
+
+[node name="TrialResults" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_results")
+
+[node name="Background" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.024, 0.031, 0.055, 1)
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = 40.0
+offset_right = -32.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="Root" type="VBoxContainer" parent="Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="TitleLabel" type="Label" parent="Scroll/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "Complete"
+horizontal_alignment = 1
+
+[node name="MetricsSpacer" type="Control" parent="Scroll/Root"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="AccuracyLabel" type="Label" parent="Scroll/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "Accuracy  0%"
+horizontal_alignment = 1
+
+[node name="TimeLabel" type="Label" parent="Scroll/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "Time  0.0s"
+horizontal_alignment = 1
+
+[node name="LuminaSpacer" type="Control" parent="Scroll/Root"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="LuminaLabel" type="Label" parent="Scroll/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "+0 ✦"
+horizontal_alignment = 1
+
+[node name="BreakdownLabel" type="Label" parent="Scroll/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "difficulty ×1.00"
+horizontal_alignment = 1
+
+[node name="RankSpacer" type="Control" parent="Scroll/Root"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="RankLabel" type="Label" parent="Scroll/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "Rank 0  ·  +0 XP"
+horizontal_alignment = 1
+
+[node name="XPBar" type="ProgressBar" parent="Scroll/Root"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+size_flags_horizontal = 3
+show_percentage = false
+
+[node name="ActionSpacer" type="Control" parent="Scroll/Root"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Actions" type="BoxContainer" parent="Scroll/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 24
+
+[node name="RetryButton" type="Button" parent="Scroll/Root/Actions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(288, 68)
+layout_mode = 2
+text = "Retry Trial"
+
+[node name="HubButton" type="Button" parent="Scroll/Root/Actions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(288, 68)
+layout_mode = 2
+text = "Return to Hub"
+
+[node name="CelebrationModal" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Scrim" type="ColorRect" parent="CelebrationModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.62)
+
+[node name="CelebrationLabel" type="Label" parent="CelebrationModal"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -100.0
+offset_right = 320.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+text = "Reward unlocked"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="CelebrationClaimButton" type="Button" parent="CelebrationModal"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -140.0
+offset_top = 24.0
+offset_right = 140.0
+offset_bottom = 88.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Continue"

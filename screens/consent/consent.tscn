@@ -1,0 +1,111 @@
+[gd_scene load_steps=2 format=3 uid="uid://c2swconsent001"]
+
+[ext_resource type="Script" path="res://nodes/consent_controller.gd" id="1_consent"]
+
+[node name="Consent" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_consent")
+
+[node name="Background" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.024, 0.031, 0.055, 1)
+
+[node name="Root" type="MarginContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 28
+
+[node name="Scroll" type="ScrollContainer" parent="Root"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="CentreWrap" type="VBoxContainer" parent="Root/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+alignment = 1
+mouse_filter = 2
+
+[node name="Card" type="PanelContainer" parent="Root/Scroll/CentreWrap"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="CardBody" type="VBoxContainer" parent="Root/Scroll/CentreWrap/Card"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="Root/Scroll/CentreWrap/Card/CardBody"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "Before we begin"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="BodyLabel" type="Label" parent="Root/Scroll/CentreWrap/Card/CardBody"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="LinkRow" type="HBoxContainer" parent="Root/Scroll/CentreWrap/Card/CardBody"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="PrivacyButton" type="Button" parent="Root/Scroll/CentreWrap/Card/CardBody/LinkRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Privacy Policy"
+
+[node name="TermsButton" type="Button" parent="Root/Scroll/CentreWrap/Card/CardBody/LinkRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Terms"
+
+[node name="AcceptButton" type="Button" parent="Root/Scroll/CentreWrap/Card/CardBody"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Agree & Continue"
+
+[node name="BackButton" type="Button" parent="Root/Scroll/CentreWrap/Card/CardBody"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Back"

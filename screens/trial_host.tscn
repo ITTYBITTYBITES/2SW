@@ -1,0 +1,142 @@
+[gd_scene load_steps=4 format=3 uid="uid://c2swtrialhost1"]
+
+[ext_resource type="Script" path="res://nodes/trial_controller.gd" id="1_trial"]
+[ext_resource type="Script" path="res://ui/hud_bezel.gd" id="2_bezel"]
+[ext_resource type="Script" path="res://ui/trial_feedback.gd" id="3_feedback"]
+
+[node name="TrialHost" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_trial")
+
+[node name="Background" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.024, 0.031, 0.055, 1)
+
+[node name="Stage" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 188.0
+offset_bottom = -152.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Feedback" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 188.0
+offset_bottom = -152.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_feedback")
+
+[node name="TitleLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 40.0
+offset_bottom = 96.0
+grow_horizontal = 2
+mouse_filter = 2
+text = "Trial"
+horizontal_alignment = 1
+
+[node name="ScoreBezel" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 0.5
+offset_left = 40.0
+offset_top = 108.0
+offset_right = -0.5
+offset_bottom = 164.0
+grow_horizontal = 2
+mouse_filter = 2
+script = ExtResource("2_bezel")
+readout = 0
+
+[node name="ScoreLabel" type="Label" parent="ScoreBezel"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+text = "0 / 0   (0%)"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TimerBezel" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 1.0
+offset_left = 0.5
+offset_top = 108.0
+offset_right = -40.0
+offset_bottom = 164.0
+grow_horizontal = 2
+mouse_filter = 2
+script = ExtResource("2_bezel")
+readout = 1
+
+[node name="TimerLabel" type="Label" parent="TimerBezel"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+text = "0.0s"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FinishButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -140.0
+offset_right = 160.0
+offset_bottom = -68.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Finish"
+
+[node name="ConfirmForfeit" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = "Forfeit"
+initial_position = 2
+size = Vector2i(560, 200)
+ok_button_text = "Forfeit"
+dialog_text = "Forfeit this run?"
+dialog_autowrap = true

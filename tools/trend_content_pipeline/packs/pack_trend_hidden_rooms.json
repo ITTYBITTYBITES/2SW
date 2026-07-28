@@ -1,0 +1,14 @@
+{
+  "blurb": "Denser alphabet. Less time to read it.",
+  "free": false,
+  "id": "trend_hidden_rooms",
+  "is_popular": false,
+  "name": "Hidden Rooms",
+  "order": 8,
+  "palette": 1,
+  "popularity_score": 17,
+  "schema_version": 1,
+  "symbols": 10,
+  "tempo": 0.89,
+  "week": "2026-W31"
+}

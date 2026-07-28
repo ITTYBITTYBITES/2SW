@@ -1,0 +1,164 @@
+[gd_scene load_steps=3 format=3 uid="uid://c2swdailyhub01"]
+
+[ext_resource type="Script" path="res://nodes/daily_hub_controller.gd" id="1_daily"]
+[ext_resource type="PackedScene" path="res://nodes/iris_view.tscn" id="2_iris"]
+
+[node name="DailyHub" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_daily")
+
+[node name="Background" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.024, 0.031, 0.055, 1)
+
+[node name="Root" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = 20.0
+offset_right = -28.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="Root"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "Daily"
+horizontal_alignment = 1
+
+[node name="Body" type="ScrollContainer" parent="Root"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Column" type="VBoxContainer" parent="Root/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="IrisView" parent="Root/Body/Column" instance=ExtResource("2_iris")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StreakLabel" type="Label" parent="Root/Body/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="Root/Body/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="BestLabel" type="Label" parent="Root/Body/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="GraceLabel" type="Label" parent="Root/Body/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="AnomalyPanel" type="PanelContainer" parent="Root/Body/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AnomalyBody" type="VBoxContainer" parent="Root/Body/Column/AnomalyPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AnomalyTitle" type="Label" parent="Root/Body/Column/AnomalyPanel/AnomalyBody"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "CHRONO-PULSE"
+horizontal_alignment = 1
+
+[node name="AnomalyStatus" type="Label" parent="Root/Body/Column/AnomalyPanel/AnomalyBody"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="AnomalyButton" type="Button" parent="Root/Body/Column/AnomalyPanel/AnomalyBody"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Begin Anomaly"
+
+[node name="RecoverButton" type="Button" parent="Root/Body/Column/AnomalyPanel/AnomalyBody"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Recover Streak"
+
+[node name="MilestoneTrack" type="HBoxContainer" parent="Root/Body/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="RewardLabel" type="Label" parent="Root/Body/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="ClaimButton" type="Button" parent="Root"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Claim"
+
+[node name="BeginTrialButton" type="Button" parent="Root"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Begin Daily Trial"
+
+[node name="BackButton" type="Button" parent="Root"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Back"

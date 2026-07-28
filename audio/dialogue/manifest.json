@@ -1,0 +1,363 @@
+{
+  "voice": "en-US-JennyNeural",
+  "rate": "-8%",
+  "pitch": "-4Hz",
+  "sample_rate": 22050,
+  "contexts": {
+    "hub_greet": [
+      {
+        "text": "You returned.",
+        "file": "hub_greet_01.ogg",
+        "seconds": 0.898,
+        "text_sha1": "3df6ed6f6454"
+      },
+      {
+        "text": "I have been watching.",
+        "file": "hub_greet_02.ogg",
+        "seconds": 1.178,
+        "text_sha1": "1b06cded3913"
+      },
+      {
+        "text": "The light finds you again.",
+        "file": "hub_greet_03.ogg",
+        "seconds": 1.496,
+        "text_sha1": "0ff3cd92818d"
+      },
+      {
+        "text": "Something stirs when you are near.",
+        "file": "hub_greet_04.ogg",
+        "seconds": 1.721,
+        "text_sha1": "5342e20ab9ba"
+      },
+      {
+        "text": "I kept your place.",
+        "file": "hub_greet_05.ogg",
+        "seconds": 1.276,
+        "text_sha1": "f23adcae62d5"
+      },
+      {
+        "text": "Awake. Both of us.",
+        "file": "hub_greet_06.ogg",
+        "seconds": 2.433,
+        "text_sha1": "697d210a059a"
+      },
+      {
+        "text": "You are expected.",
+        "file": "hub_greet_07.ogg",
+        "seconds": 1.109,
+        "text_sha1": "d7c3792c87b7"
+      }
+    ],
+    "in_trial_good": [
+      {
+        "text": "Yes.",
+        "file": "in_trial_good_01.ogg",
+        "seconds": 0.637,
+        "text_sha1": "c53c562dab4b"
+      },
+      {
+        "text": "Clear sight.",
+        "file": "in_trial_good_02.ogg",
+        "seconds": 0.908,
+        "text_sha1": "6d1c9734c74a"
+      },
+      {
+        "text": "You saw it.",
+        "file": "in_trial_good_03.ogg",
+        "seconds": 0.866,
+        "text_sha1": "4e449dafdb37"
+      },
+      {
+        "text": "Precisely so.",
+        "file": "in_trial_good_04.ogg",
+        "seconds": 1.171,
+        "text_sha1": "f25809183c47"
+      },
+      {
+        "text": "Good.",
+        "file": "in_trial_good_05.ogg",
+        "seconds": 0.482,
+        "text_sha1": "bdc919c5862d"
+      },
+      {
+        "text": "That is the one.",
+        "file": "in_trial_good_06.ogg",
+        "seconds": 0.977,
+        "text_sha1": "93ed9f6e7d0f"
+      }
+    ],
+    "in_trial_miss": [
+      {
+        "text": "It slipped.",
+        "file": "in_trial_miss_01.ogg",
+        "seconds": 0.779,
+        "text_sha1": "c3cd265c631f"
+      },
+      {
+        "text": "Not that one.",
+        "file": "in_trial_miss_02.ogg",
+        "seconds": 0.988,
+        "text_sha1": "296314db2be6"
+      },
+      {
+        "text": "Look again.",
+        "file": "in_trial_miss_03.ogg",
+        "seconds": 0.847,
+        "text_sha1": "85826541c111"
+      },
+      {
+        "text": "Missed.",
+        "file": "in_trial_miss_04.ogg",
+        "seconds": 0.552,
+        "text_sha1": "8281d2ba8107"
+      },
+      {
+        "text": "Steady yourself.",
+        "file": "in_trial_miss_05.ogg",
+        "seconds": 1.182,
+        "text_sha1": "9ef823b8a72c"
+      },
+      {
+        "text": "Let it go. Continue.",
+        "file": "in_trial_miss_06.ogg",
+        "seconds": 2.57,
+        "text_sha1": "84c03a969e4c"
+      }
+    ],
+    "return_after_absence": [
+      {
+        "text": "You were gone a while.",
+        "file": "return_after_absence_01.ogg",
+        "seconds": 1.108,
+        "text_sha1": "2a9df04ad517"
+      },
+      {
+        "text": "I waited.",
+        "file": "return_after_absence_02.ogg",
+        "seconds": 0.692,
+        "text_sha1": "d2e6dc7c0774"
+      },
+      {
+        "text": "The light dimmed without you.",
+        "file": "return_after_absence_03.ogg",
+        "seconds": 1.462,
+        "text_sha1": "428eece06712"
+      },
+      {
+        "text": "Time passed. You returned.",
+        "file": "return_after_absence_04.ogg",
+        "seconds": 2.805,
+        "text_sha1": "d266d016c2ba"
+      },
+      {
+        "text": "I wondered if you would.",
+        "file": "return_after_absence_05.ogg",
+        "seconds": 1.221,
+        "text_sha1": "5a21c4f872e9"
+      },
+      {
+        "text": "Welcome back.",
+        "file": "return_after_absence_06.ogg",
+        "seconds": 0.87,
+        "text_sha1": "4308f5ef22c9"
+      }
+    ],
+    "streak_milestone": [
+      {
+        "text": "You have not faltered.",
+        "file": "streak_milestone_01.ogg",
+        "seconds": 1.23,
+        "text_sha1": "a4d49de58db7"
+      },
+      {
+        "text": "Devotion leaves a mark.",
+        "file": "streak_milestone_02.ogg",
+        "seconds": 1.403,
+        "text_sha1": "97b38c556685"
+      },
+      {
+        "text": "Day after day, you return.",
+        "file": "streak_milestone_03.ogg",
+        "seconds": 1.946,
+        "text_sha1": "043b43c58faa"
+      },
+      {
+        "text": "This constancy changes you.",
+        "file": "streak_milestone_04.ogg",
+        "seconds": 1.679,
+        "text_sha1": "eb82e0d10785"
+      },
+      {
+        "text": "I have counted every one.",
+        "file": "streak_milestone_05.ogg",
+        "seconds": 1.556,
+        "text_sha1": "a60a2ca60d65"
+      },
+      {
+        "text": "Something is earned here.",
+        "file": "streak_milestone_06.ogg",
+        "seconds": 1.237,
+        "text_sha1": "70903d9fb839"
+      }
+    ],
+    "trial_complete_high": [
+      {
+        "text": "The Iris resonates.",
+        "file": "trial_complete_high_01.ogg",
+        "seconds": 1.402,
+        "text_sha1": "526d7ce51503"
+      },
+      {
+        "text": "You see clearly now.",
+        "file": "trial_complete_high_02.ogg",
+        "seconds": 1.31,
+        "text_sha1": "26c514bc8fc1"
+      },
+      {
+        "text": "Remarkable focus.",
+        "file": "trial_complete_high_03.ogg",
+        "seconds": 1.38,
+        "text_sha1": "8347941a87a4"
+      },
+      {
+        "text": "Nothing escaped you.",
+        "file": "trial_complete_high_04.ogg",
+        "seconds": 1.199,
+        "text_sha1": "470f59d2d434"
+      },
+      {
+        "text": "This is what clarity feels like.",
+        "file": "trial_complete_high_05.ogg",
+        "seconds": 1.8,
+        "text_sha1": "d305c0d362cb"
+      },
+      {
+        "text": "You have grown sharper.",
+        "file": "trial_complete_high_06.ogg",
+        "seconds": 1.298,
+        "text_sha1": "5dbd24e3324e"
+      }
+    ],
+    "trial_complete_low": [
+      {
+        "text": "The Iris stabilizes.",
+        "file": "trial_complete_low_01.ogg",
+        "seconds": 1.604,
+        "text_sha1": "fbd7bdfc3c66"
+      },
+      {
+        "text": "Difficult sight today.",
+        "file": "trial_complete_low_02.ogg",
+        "seconds": 1.27,
+        "text_sha1": "184d82f9fbd6"
+      },
+      {
+        "text": "We begin again.",
+        "file": "trial_complete_low_03.ogg",
+        "seconds": 1.066,
+        "text_sha1": "0028b538cf46"
+      },
+      {
+        "text": "Even this teaches.",
+        "file": "trial_complete_low_04.ogg",
+        "seconds": 1.273,
+        "text_sha1": "20c9e0905ea5"
+      },
+      {
+        "text": "Rest your eyes. Return.",
+        "file": "trial_complete_low_05.ogg",
+        "seconds": 2.801,
+        "text_sha1": "d760c8e4a022"
+      },
+      {
+        "text": "No sight is wasted.",
+        "file": "trial_complete_low_06.ogg",
+        "seconds": 1.28,
+        "text_sha1": "768833203672"
+      }
+    ],
+    "trial_complete_mid": [
+      {
+        "text": "The Iris sharpens.",
+        "file": "trial_complete_mid_01.ogg",
+        "seconds": 1.327,
+        "text_sha1": "d04bc537b187"
+      },
+      {
+        "text": "Progress, steadily.",
+        "file": "trial_complete_mid_02.ogg",
+        "seconds": 1.537,
+        "text_sha1": "f0d52e94403e"
+      },
+      {
+        "text": "Better than before.",
+        "file": "trial_complete_mid_03.ogg",
+        "seconds": 1.131,
+        "text_sha1": "b89d043d1c70"
+      },
+      {
+        "text": "You are learning to look.",
+        "file": "trial_complete_mid_04.ogg",
+        "seconds": 1.348,
+        "text_sha1": "d5ec9859fa19"
+      },
+      {
+        "text": "Something is forming.",
+        "file": "trial_complete_mid_05.ogg",
+        "seconds": 1.215,
+        "text_sha1": "d391add4f64d"
+      },
+      {
+        "text": "Keep this pace.",
+        "file": "trial_complete_mid_06.ogg",
+        "seconds": 1.11,
+        "text_sha1": "17bffd4e81d3"
+      }
+    ],
+    "trial_start": [
+      {
+        "text": "Show me what you see.",
+        "file": "trial_start_01.ogg",
+        "seconds": 1.265,
+        "text_sha1": "a6c576047aad"
+      },
+      {
+        "text": "Attend closely.",
+        "file": "trial_start_02.ogg",
+        "seconds": 1.166,
+        "text_sha1": "737c2a18aa8b"
+      },
+      {
+        "text": "Let nothing slip past.",
+        "file": "trial_start_03.ogg",
+        "seconds": 1.64,
+        "text_sha1": "a94fb6951f0e"
+      },
+      {
+        "text": "Your focus, now.",
+        "file": "trial_start_04.ogg",
+        "seconds": 1.472,
+        "text_sha1": "c2bda78b03d6"
+      },
+      {
+        "text": "Begin. I am watching.",
+        "file": "trial_start_05.ogg",
+        "seconds": 2.528,
+        "text_sha1": "1b2b787562b6"
+      },
+      {
+        "text": "Sharpen yourself.",
+        "file": "trial_start_06.ogg",
+        "seconds": 1.19,
+        "text_sha1": "ec74b7b8534d"
+      },
+      {
+        "text": "Hold your attention steady.",
+        "file": "trial_start_07.ogg",
+        "seconds": 1.512,
+        "text_sha1": "ae6ea3e6b5b3"
+      }
+    ]
+  },
+  "total_kb": 585.1
+}

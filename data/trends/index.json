@@ -1,0 +1,188 @@
+{
+  "free_count": 5,
+  "packs": [
+    {
+      "file": "packs/pack_trend_broadcast_static.json",
+      "free": true,
+      "id": "trend_broadcast_static",
+      "is_popular": false,
+      "name": "Broadcast Static",
+      "order": 0,
+      "popularity_score": 0
+    },
+    {
+      "file": "packs/pack_trend_deep_lore.json",
+      "free": true,
+      "id": "trend_deep_lore",
+      "is_popular": true,
+      "name": "Deep Lore",
+      "order": 1,
+      "popularity_score": 70
+    },
+    {
+      "file": "packs/pack_trend_lost_media.json",
+      "free": true,
+      "id": "trend_lost_media",
+      "is_popular": true,
+      "name": "Lost Media",
+      "order": 2,
+      "popularity_score": 79
+    },
+    {
+      "file": "packs/pack_trend_final_boss.json",
+      "free": true,
+      "id": "trend_final_boss",
+      "is_popular": true,
+      "name": "Final Boss",
+      "order": 3,
+      "popularity_score": 74
+    },
+    {
+      "file": "packs/pack_trend_neon_alleys.json",
+      "free": true,
+      "id": "trend_neon_alleys",
+      "is_popular": false,
+      "name": "Neon Alleys",
+      "order": 4,
+      "popularity_score": 57
+    },
+    {
+      "file": "packs/pack_trend_cartridge_dust.json",
+      "free": false,
+      "id": "trend_cartridge_dust",
+      "is_popular": false,
+      "name": "Cartridge Dust",
+      "order": 5,
+      "popularity_score": 33
+    },
+    {
+      "file": "packs/pack_trend_loading_screens.json",
+      "free": false,
+      "id": "trend_loading_screens",
+      "is_popular": false,
+      "name": "Loading Screens",
+      "order": 6,
+      "popularity_score": 68
+    },
+    {
+      "file": "packs/pack_trend_boss_themes.json",
+      "free": false,
+      "id": "trend_boss_themes",
+      "is_popular": true,
+      "name": "Boss Themes",
+      "order": 7,
+      "popularity_score": 83
+    },
+    {
+      "file": "packs/pack_trend_hidden_rooms.json",
+      "free": false,
+      "id": "trend_hidden_rooms",
+      "is_popular": false,
+      "name": "Hidden Rooms",
+      "order": 8,
+      "popularity_score": 17
+    },
+    {
+      "file": "packs/pack_trend_commonwealth_games.json",
+      "free": false,
+      "id": "trend_commonwealth_games",
+      "is_popular": false,
+      "name": "2026 Commonwealth Games",
+      "order": 9,
+      "popularity_score": 50
+    },
+    {
+      "file": "packs/pack_trend_fifa_world_cup.json",
+      "free": false,
+      "id": "trend_fifa_world_cup",
+      "is_popular": false,
+      "name": "2026 FIFA World Cup",
+      "order": 10,
+      "popularity_score": 53
+    },
+    {
+      "file": "packs/pack_trend_helen_of_troy.json",
+      "free": false,
+      "id": "trend_helen_of_troy",
+      "is_popular": false,
+      "name": "Helen of Troy",
+      "order": 11,
+      "popularity_score": 23
+    },
+    {
+      "file": "packs/pack_trend_internet_lore.json",
+      "free": false,
+      "id": "trend_internet_lore",
+      "is_popular": true,
+      "name": "Internet Lore",
+      "order": 12,
+      "popularity_score": 96
+    },
+    {
+      "file": "packs/pack_trend_gaming_myths_glitches.json",
+      "free": false,
+      "id": "trend_gaming_myths_glitches",
+      "is_popular": true,
+      "name": "Gaming Myths & Glitches",
+      "order": 13,
+      "popularity_score": 93
+    },
+    {
+      "file": "packs/pack_trend_pop_culture.json",
+      "free": false,
+      "id": "trend_pop_culture",
+      "is_popular": true,
+      "name": "Pop Culture",
+      "order": 14,
+      "popularity_score": 90
+    },
+    {
+      "file": "packs/pack_trend_music_hooks.json",
+      "free": false,
+      "id": "trend_music_hooks",
+      "is_popular": true,
+      "name": "Music Hooks",
+      "order": 15,
+      "popularity_score": 71
+    },
+    {
+      "file": "packs/pack_trend_screen_moments.json",
+      "free": false,
+      "id": "trend_screen_moments",
+      "is_popular": false,
+      "name": "Screen Moments",
+      "order": 16,
+      "popularity_score": 19
+    },
+    {
+      "file": "packs/pack_trend_sports_flashes.json",
+      "free": false,
+      "id": "trend_sports_flashes",
+      "is_popular": false,
+      "name": "Sports Flashes",
+      "order": 17,
+      "popularity_score": 20
+    },
+    {
+      "file": "packs/pack_trend_science_signals.json",
+      "free": false,
+      "id": "trend_science_signals",
+      "is_popular": false,
+      "name": "Science Signals",
+      "order": 18,
+      "popularity_score": 2
+    },
+    {
+      "file": "packs/pack_trend_speedrun_relics.json",
+      "free": false,
+      "id": "trend_speedrun_relics",
+      "is_popular": true,
+      "name": "Speedrun Relics",
+      "order": 19,
+      "popularity_score": 85
+    }
+  ],
+  "schema_version": 1,
+  "total": 20,
+  "week": "2026-W31"
+}

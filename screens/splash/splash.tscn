@@ -1,0 +1,177 @@
+[gd_scene load_steps=5 format=3 uid="uid://c2swsplash0001"]
+
+[ext_resource type="Script" path="res://nodes/splash_controller.gd" id="1_splash"]
+[ext_resource type="Script" path="res://nodes/splash_visuals.gd" id="2_visuals"]
+[ext_resource type="Script" path="res://ui/splash_bloom.gd" id="3_bloom"]
+[ext_resource type="Script" path="res://ui/splash_plate.gd" id="4_plate"]
+
+[node name="Splash" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+script = ExtResource("1_splash")
+
+[node name="Background" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.024, 0.031, 0.055, 1)
+
+[node name="Bloom" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_bloom")
+
+[node name="SponsorLayer" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+alignment = 1
+theme_override_constants/separation = 10
+
+[node name="SponsorMark" type="Control" parent="SponsorLayer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 3.0
+mouse_filter = 2
+script = ExtResource("2_visuals")
+kind = 0
+underlay = true
+
+[node name="SponsorPlate" type="Control" parent="SponsorLayer/SponsorMark"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("4_plate")
+texture_path = "res://art/branding/splash/sponsor_mark.png"
+
+[node name="SponsorName" type="Label" parent="SponsorLayer"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "ITTYBITTYBITES"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="SponsorTagline" type="Label" parent="SponsorLayer"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "experience"
+horizontal_alignment = 1
+
+[node name="TitleLayer" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 16.0
+offset_right = -24.0
+offset_bottom = -56.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="Monogram" type="Control" parent="TitleLayer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
+mouse_filter = 2
+script = ExtResource("2_visuals")
+kind = 1
+underlay = true
+
+[node name="TitlePlate" type="Control" parent="TitleLayer/Monogram"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("4_plate")
+texture_path = "res://art/branding/splash/title_plate.png"
+
+[node name="TitleName" type="Label" parent="TitleLayer"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "TWO SECOND WITNESS"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="IrisProgress" type="Control" parent="TitleLayer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 3.0
+mouse_filter = 2
+script = ExtResource("2_visuals")
+kind = 2
+
+[node name="StatusLabel" type="Label" parent="TitleLayer"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="SkipHint" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -64.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+text = "tap to skip"
+horizontal_alignment = 1

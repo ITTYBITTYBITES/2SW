@@ -1,0 +1,14 @@
+{
+  "blurb": "Featured this week. Free to play.",
+  "free": true,
+  "id": "trend_final_boss",
+  "is_popular": true,
+  "name": "Final Boss",
+  "order": 3,
+  "palette": 7,
+  "popularity_score": 74,
+  "schema_version": 1,
+  "symbols": 8,
+  "tempo": 0.96,
+  "week": "2026-W31"
+}

@@ -1,0 +1,14 @@
+{
+  "blurb": "Denser alphabet. Less time to read it.",
+  "free": false,
+  "id": "trend_fifa_world_cup",
+  "is_popular": false,
+  "name": "2026 FIFA World Cup",
+  "order": 10,
+  "palette": 4,
+  "popularity_score": 53,
+  "schema_version": 1,
+  "symbols": 11,
+  "tempo": 0.87,
+  "week": "2026-W31"
+}

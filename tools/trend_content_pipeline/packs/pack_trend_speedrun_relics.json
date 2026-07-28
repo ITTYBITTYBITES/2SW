@@ -1,0 +1,14 @@
+{
+  "blurb": "Denser alphabet. Less time to read it.",
+  "free": false,
+  "id": "trend_speedrun_relics",
+  "is_popular": true,
+  "name": "Speedrun Relics",
+  "order": 19,
+  "palette": 4,
+  "popularity_score": 85,
+  "schema_version": 1,
+  "symbols": 15,
+  "tempo": 0.75,
+  "week": "2026-W31"
+}

@@ -1,0 +1,14 @@
+{
+  "blurb": "Featured this week. Free to play.",
+  "free": true,
+  "id": "trend_broadcast_static",
+  "is_popular": false,
+  "name": "Broadcast Static",
+  "order": 0,
+  "palette": 4,
+  "popularity_score": 0,
+  "schema_version": 1,
+  "symbols": 6,
+  "tempo": 1.0,
+  "week": "2026-W31"
+}

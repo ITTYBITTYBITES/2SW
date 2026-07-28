@@ -1,0 +1,14 @@
+{
+  "blurb": "Featured this week. Free to play.",
+  "free": true,
+  "id": "trend_deep_lore",
+  "is_popular": true,
+  "name": "Deep Lore",
+  "order": 1,
+  "palette": 6,
+  "popularity_score": 70,
+  "schema_version": 1,
+  "symbols": 6,
+  "tempo": 0.99,
+  "week": "2026-W31"
+}

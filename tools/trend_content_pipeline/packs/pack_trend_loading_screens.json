@@ -1,0 +1,14 @@
+{
+  "blurb": "Denser alphabet. Less time to read it.",
+  "free": false,
+  "id": "trend_loading_screens",
+  "is_popular": false,
+  "name": "Loading Screens",
+  "order": 6,
+  "palette": 5,
+  "popularity_score": 68,
+  "schema_version": 1,
+  "symbols": 9,
+  "tempo": 0.92,
+  "week": "2026-W31"
+}

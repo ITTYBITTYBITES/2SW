@@ -1,0 +1,14 @@
+{
+  "blurb": "Denser alphabet. Less time to read it.",
+  "free": false,
+  "id": "trend_helen_of_troy",
+  "is_popular": false,
+  "name": "Helen of Troy",
+  "order": 11,
+  "palette": 6,
+  "popularity_score": 23,
+  "schema_version": 1,
+  "symbols": 12,
+  "tempo": 0.86,
+  "week": "2026-W31"
+}

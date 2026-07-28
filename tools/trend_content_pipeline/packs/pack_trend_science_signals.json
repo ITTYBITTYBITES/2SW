@@ -1,0 +1,14 @@
+{
+  "blurb": "Denser alphabet. Less time to read it.",
+  "free": false,
+  "id": "trend_science_signals",
+  "is_popular": false,
+  "name": "Science Signals",
+  "order": 18,
+  "palette": 5,
+  "popularity_score": 2,
+  "schema_version": 1,
+  "symbols": 15,
+  "tempo": 0.76,
+  "week": "2026-W31"
+}

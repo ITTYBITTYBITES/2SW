@@ -1,0 +1,14 @@
+{
+  "blurb": "Denser alphabet. Less time to read it.",
+  "free": false,
+  "id": "trend_screen_moments",
+  "is_popular": false,
+  "name": "Screen Moments",
+  "order": 16,
+  "palette": 1,
+  "popularity_score": 19,
+  "schema_version": 1,
+  "symbols": 14,
+  "tempo": 0.79,
+  "week": "2026-W31"
+}

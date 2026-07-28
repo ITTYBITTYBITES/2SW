@@ -1,0 +1,14 @@
+{
+  "blurb": "Denser alphabet. Less time to read it.",
+  "free": false,
+  "id": "trend_cartridge_dust",
+  "is_popular": false,
+  "name": "Cartridge Dust",
+  "order": 5,
+  "palette": 3,
+  "popularity_score": 33,
+  "schema_version": 1,
+  "symbols": 9,
+  "tempo": 0.93,
+  "week": "2026-W31"
+}

@@ -1,0 +1,14 @@
+{
+  "blurb": "Denser alphabet. Less time to read it.",
+  "free": false,
+  "id": "trend_sports_flashes",
+  "is_popular": false,
+  "name": "Sports Flashes",
+  "order": 17,
+  "palette": 0,
+  "popularity_score": 20,
+  "schema_version": 1,
+  "symbols": 14,
+  "tempo": 0.78,
+  "week": "2026-W31"
+}

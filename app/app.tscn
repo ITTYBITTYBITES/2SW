@@ -1,0 +1,52 @@
+[gd_scene load_steps=2 format=3 uid="uid://c2swapproot01"]
+
+[ext_resource type="Script" path="res://app/app.gd" id="1_app"]
+
+[node name="App" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_app")
+
+[node name="Screens" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="Overlay" type="CanvasLayer" parent="."]
+unique_name_in_owner = true
+layer = 100
+
+[node name="Toasts" type="VBoxContainer" parent="Overlay"]
+unique_name_in_owner = true
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = -320.0
+offset_right = 400.0
+offset_bottom = -160.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+alignment = 2
+theme_override_constants/separation = 10
+
+[node name="ConfirmQuit" type="ConfirmationDialog" parent="Overlay"]
+unique_name_in_owner = true
+title = "Confirm"
+initial_position = 2
+size = Vector2i(560, 180)
+ok_button_text = "Leave"
+dialog_text = "Leave Witness?"
+dialog_autowrap = true

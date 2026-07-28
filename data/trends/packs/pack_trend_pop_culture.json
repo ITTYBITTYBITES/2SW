@@ -1,0 +1,14 @@
+{
+  "blurb": "Denser alphabet. Less time to read it.",
+  "free": false,
+  "id": "trend_pop_culture",
+  "is_popular": true,
+  "name": "Pop Culture",
+  "order": 14,
+  "palette": 2,
+  "popularity_score": 90,
+  "schema_version": 1,
+  "symbols": 13,
+  "tempo": 0.82,
+  "week": "2026-W31"
+}

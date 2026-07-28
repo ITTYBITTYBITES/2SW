@@ -1,0 +1,14 @@
+{
+  "blurb": "Featured this week. Free to play.",
+  "free": true,
+  "id": "trend_lost_media",
+  "is_popular": true,
+  "name": "Lost Media",
+  "order": 2,
+  "palette": 7,
+  "popularity_score": 79,
+  "schema_version": 1,
+  "symbols": 7,
+  "tempo": 0.97,
+  "week": "2026-W31"
+}

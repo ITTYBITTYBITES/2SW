@@ -1,0 +1,14 @@
+{
+  "blurb": "Denser alphabet. Less time to read it.",
+  "free": false,
+  "id": "trend_commonwealth_games",
+  "is_popular": false,
+  "name": "2026 Commonwealth Games",
+  "order": 9,
+  "palette": 0,
+  "popularity_score": 50,
+  "schema_version": 1,
+  "symbols": 11,
+  "tempo": 0.88,
+  "week": "2026-W31"
+}
