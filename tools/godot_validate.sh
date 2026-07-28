@@ -142,10 +142,29 @@ if ! grep -q "ALL .* TIMING CHECKS PASSED" /tmp/godot_timing.log; then
 fi
 
 echo "── lifecycle safeguards"
+# UNDER A REAL DISPLAY SERVER, AT A NON-DESIGN WINDOW SIZE.
+#
+# The safe-area sanity checks exercise DisplayServer.get_display_safe_area(),
+# which under --headless returns a zero rect — the desktop code path never
+# runs and the checks are vacuous. Proven by injection: reverting the safe
+# area fix entirely still gave "ALL CHECKS PASSED" headlessly, while the same
+# run under X11 produced six failures.
+#
+# 817x1452 is the window size the defect was reported from, deliberately NOT
+# the design resolution, so the monitor/window mismatch is real.
 set +e
-"$GODOT" --headless --path . --script res://tools/lifecycle_flow.gd 2>&1 \
-  | grep -vE "^\[inf|^\[dbg|^WARNING|^     at:|backtrace|^\s+\[[0-9]\]|^ERROR|^SCRIPT ERROR" \
-  | tee /tmp/godot_lifecycle.log
+if command -v xvfb-run >/dev/null 2>&1; then
+  xvfb-run -a --server-args="-screen 0 1920x1080x24" \
+    "$GODOT" --path . --resolution 817x1452 \
+    --script res://tools/lifecycle_flow.gd 2>&1 \
+    | grep -vE "^\[inf|^\[dbg|^WARNING|^     at:|backtrace|^\s+\[[0-9]\]|^ERROR|^SCRIPT ERROR" \
+    | tee /tmp/godot_lifecycle.log
+else
+  echo "  (xvfb-run absent — the safe-area sanity checks will report SKIP)"
+  "$GODOT" --headless --path . --script res://tools/lifecycle_flow.gd 2>&1 \
+    | grep -vE "^\[inf|^\[dbg|^WARNING|^     at:|backtrace|^\s+\[[0-9]\]|^ERROR|^SCRIPT ERROR" \
+    | tee /tmp/godot_lifecycle.log
+fi
 set -e
 
 if ! grep -q "ALL .* LIFECYCLE CHECKS PASSED" /tmp/godot_lifecycle.log; then
@@ -155,10 +174,26 @@ if ! grep -q "ALL .* LIFECYCLE CHECKS PASSED" /tmp/godot_lifecycle.log; then
 fi
 
 echo "── phase 1: nav gate + vision model"
+# RUN THIS ONE ON A REAL GPU WHEN ONE CAN BE FAKED.
+#
+# The vision flow locates the pupil by reading rendered PIXELS — the only way
+# to catch a glyph drawn in the wrong place, since any check that recomputes
+# the position agrees with whatever bug the implementation has. Under
+# --headless the driver is Dummy, nothing is rasterised, and the check reports
+# SKIP. xvfb-run gives it llvmpipe, so it actually executes.
 set +e
-"$GODOT" --headless --path . --script res://tools/vision_gate_flow.gd 2>&1 \
-  | grep -vE "^\[inf|^\[dbg|^WARNING|^     at:|backtrace|^\s+\[[0-9]\]|^ERROR|^SCRIPT ERROR" \
-  | tee /tmp/godot_vision.log
+if command -v xvfb-run >/dev/null 2>&1; then
+  xvfb-run -a --server-args="-screen 0 1200x2000x24" \
+    "$GODOT" --path . --resolution 1080x1920 \
+    --script res://tools/vision_gate_flow.gd 2>&1 \
+    | grep -vE "^\[inf|^\[dbg|^WARNING|^     at:|backtrace|^\s+\[[0-9]\]|^ERROR|^SCRIPT ERROR" \
+    | tee /tmp/godot_vision.log
+else
+  echo "  (xvfb-run absent — the rendered-pupil check will report SKIP)"
+  "$GODOT" --headless --path . --script res://tools/vision_gate_flow.gd 2>&1 \
+    | grep -vE "^\[inf|^\[dbg|^WARNING|^     at:|backtrace|^\s+\[[0-9]\]|^ERROR|^SCRIPT ERROR" \
+    | tee /tmp/godot_vision.log
+fi
 set -e
 
 if ! grep -q "ALL .* PHASE-1+2 CHECKS PASSED" /tmp/godot_vision.log; then
@@ -185,6 +220,18 @@ echo "── audio director"
   | grep -vE "^\[inf|^\[dbg|^WARNING|^     at:" | tee /tmp/godot_audiodir.log
 if ! grep -q "ALL .* AUDIO DIRECTOR CHECKS PASSED" /tmp/godot_audiodir.log; then
   echo "AUDIO DIRECTOR FAILED"; exit 1
+fi
+
+echo "── layer engine"
+"$GODOT" --headless --path . --script res://tools/layer_engine_flow.gd 2>&1 \
+  | grep -vE "^\[inf|^\[dbg|^WARNING|^     at:" | tee /tmp/godot_layers.log
+if ! grep -q "ALL .* LAYER ENGINE CHECKS PASSED" /tmp/godot_layers.log; then
+  echo "LAYER ENGINE FAILED"; exit 1
+fi
+
+echo "── layer library matches its recipes"
+if ! python3 ./tools/bake_audio_layers.py --check; then
+  echo "LAYER LIBRARY FAILED"; exit 1
 fi
 
 echo "── compiler warning sweep"

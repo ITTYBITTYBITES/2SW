@@ -28,9 +28,11 @@ class_name TutorialScript
 const SCRIPTS: Dictionary = {
 	"false_witness": {
 		"title": "False Witness",
-		"objective": "One glyph is not like the others.",
-		"observe": "Every glyph shares the same rings, size and glow — except one.",
-		"act": "Tap the odd one before the ring of light runs out.",
+		"objective": "Six glyphs appear in a ring. One is different.",
+		"observe": "The odd one has an extra ring, a larger pupil, or a tilt. "
+			+ "Compare them against each other, not against memory.",
+		"act": "Tap the different glyph. The cyan arc is your timer — "
+			+ "when it closes, the round is lost.",
 	},
 	"sequence_recall": {
 		"title": "Sequence Recall",

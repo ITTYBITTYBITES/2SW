@@ -5,6 +5,17 @@ extends SceneTree
 ## a --script MainLoop compiles before autoloads attach and any class_name
 ## script that references Log/Palette fails to resolve at that point.
 
+## Luminance below which a rendered pixel counts as pupil rather than iris.
+##
+## Measured by radially scanning a GPU capture out from the eye centre: the
+## pupil interior sits at ~0.04 and the iris jumps to 0.19 within 5px of the
+## boundary, so anything in that gap separates them cleanly.
+const PUPIL_DARK_MAX: float = 0.10
+
+## Radius of the pupil search, as a fraction of the eye's side. See
+## _measure_pupil_centre() for the measurements behind it.
+const PUPIL_SEARCH_FRAC: float = 0.36
+
 var _fails: Array[String] = []
 var _n: int = 0
 
@@ -151,7 +162,15 @@ func _run() -> void:
 	_ok("an unknown route yields null", glyph_script.for_route("nope") == null)
 
 	print("── the v1 animation contract ──")
-	_ok("disc fraction is 0.60", is_equal_approx(glyph_script.DISC_FRACTION, 0.60))
+	# DISC_FRACTION IS NO LONGER v1's 0.60. See data/vision_glyph.gd: 0.60 was
+	# calibrated against v1's much larger pupil and rendered a disc four times
+	# this eye's pupil, so the glyph sprawled across the whole iris. The
+	# meaningful assertion is the geometric one below ("the disc fits inside
+	# the pupil"), which is measured against the live shader rather than
+	# compared to a literal.
+	_ok("the disc is smaller than the iris it sits in",
+		glyph_script.DISC_FRACTION < 0.5,
+		"%.2f" % glyph_script.DISC_FRACTION)
 	_ok("fade-in is 0.22s", is_equal_approx(glyph_script.FADE_IN_SEC, 0.22))
 	_ok("scale-in is 0.28s", is_equal_approx(glyph_script.SCALE_IN_SEC, 0.28))
 	_ok("scale starts at 0.85", is_equal_approx(glyph_script.SCALE_FROM, 0.85))
@@ -304,15 +323,31 @@ func _phase2_live() -> void:
 
 	var hint2: Label = _find(open_hub, "HintLabel") as Label
 	var eye2: Node = _find(open_hub, "IrisView")
-	_ok("unlocked: all five shards are shown",
-		_visible_markers(open_hub) == 5,
-		"%d visible" % _visible_markers(open_hub))
+	# THE SHARD LABELS ARE DRAG-ONLY NOW.
+	#
+	# Every destination has a tappable rail node carrying the same caption, so
+	# permanently visible shard labels printed each word twice — and they
+	# landed on the carved frame, where they read as decoration. They appear
+	# on hover, to guide a drag in progress.
+	#
+	# What the gate must still prove is that unlocking ENABLES the compass,
+	# which the nav_enabled check below asserts directly. Absence at rest is
+	# the correct state, so that is what is checked here.
+	_ok("unlocked: shard labels stay hidden until a drag",
+		_visible_markers(open_hub) == 0,
+		"%d visible with no drag" % _visible_markers(open_hub))
 	_ok("unlocked: the hint says to drag",
 		hint2.text.to_lower().contains("drag"), hint2.text)
 	_ok("unlocked: compass hit-testing is on",
 		bool(eye2.call("nav_enabled")))
 
 	print("── phase 2: the pupil vision, live ──")
+	# _pressing mirrors a finger being DOWN. _process() only runs the
+	# autonomous idle gaze while it is false, so without this the saccade
+	# jitter overwrites _gaze_target every frame and the eye never actually
+	# looks at the shard being dragged toward — the gaze measured 0.007 where
+	# a real drag holds ~1.0.
+	eye2.set("_pressing", true)
 	eye2.call("_update_compass", Vector2(540.0, 100.0))
 	for _i: int in range(20):
 		await process_frame
@@ -334,14 +369,84 @@ func _phase2_live() -> void:
 		vision != null and bool(vision.call("has_glyph")))
 	_ok("the vision is revealed",
 		vision != null and float(vision.call("reveal")) > 0.001)
-	# The v1 contract: 0.60 of the eye. MEASURED, not read back from the
-	# constant — a renderer that ignored DISC_FRACTION would still pass a
-	# check that only compared the constant to itself.
+	# THE DISC MUST FIT INSIDE THE PUPIL IT IS DRAWN IN.
+	#
+	# This compared the disc to the EYE and to a hardcoded 0.60, which is the
+	# check that passed for the entire life of the reported defect: the glyph
+	# was drawing at 300px inside a 175px pupil, sprawling across the iris and
+	# over the collarette, and "0.600 of the eye" was perfectly true the whole
+	# time. Comparing a constant against a literal proves only that nobody
+	# edited the literal.
+	#
+	# The pupil radius is whatever the SHADER is currently rendering:
+	#   pupil_r = lerp(pupil_min, pupil_max, pupil_dilation) * side
+	# so the check follows a dilation or geometry change automatically instead
+	# of going stale.
 	var ratio: float = 0.0
 	if rect != null and core != null:
 		ratio = rect.size.x / maxf(core.size.x, 1.0)
-	_ok("the disc is 0.60 of the eye", absf(ratio - 0.60) < 0.01,
-		"%.3f" % ratio)
+	var pupil_d: float = float(eye2.call("pupil_diameter"))
+	_ok("the pupil resolved to a real size", pupil_d > 1.0, "%.1fpx" % pupil_d)
+	_ok("the vision disc fits inside the pupil",
+		rect != null and rect.size.x <= pupil_d + 1.0,
+		"disc %.0fpx vs pupil %.0fpx (%.2f of the eye)" % [
+			rect.size.x if rect != null else 0.0, pupil_d, ratio])
+
+	# ...and is not so small it reads as a speck. A disc that "fits" at 4px
+	# would satisfy the bound above while being invisible.
+	_ok("the vision disc actually fills the pupil",
+		rect != null and rect.size.x >= pupil_d * 0.55,
+		"disc %.0fpx vs pupil %.0fpx" % [
+			rect.size.x if rect != null else 0.0, pupil_d])
+
+	# THE DISC MUST RIDE WITH THE PUPIL.
+	#
+	# The shader translates the iris by `gaze_vector * 0.22` every frame, and
+	# the vision is a Control that knows nothing about that. Positioned only
+	# on resize, it stayed at the view centre while the pupil slid out from
+	# under it — measured on a GPU capture as a 41px separation on a 500px
+	# eye, during the drag that is the ONLY time the glyph is ever visible.
+	#
+	# The eye is looking hard north here (the drag above), so the offset is
+	# real and this is not a no-op comparison at gaze zero.
+	var gaze: Vector2 = Vector2.ZERO
+	var gaze_v: Variant = eye2.get("_gaze_current")
+	if gaze_v != null:
+		gaze = gaze_v
+	_ok("the drag actually moved the gaze", gaze.length() > 0.05,
+		"gaze %s" % str(gaze))
+
+	# THE PUPIL IS FOUND BY LOOKING AT THE PIXELS, NOT BY RECOMPUTING.
+	#
+	# The first version of this check re-derived the pupil position with the
+	# same expression the implementation uses. That is a tautology: when the
+	# implementation had the SIGN WRONG — sending the disc south while the
+	# pupil went north, a ~110px error plainly visible in a GPU capture — the
+	# check recomputed the identical wrong value and passed.
+	#
+	# The rendered eye is the only authority. The pupil is the large dark disc
+	# inside a bright iris, so its centroid locates it without knowing
+	# anything about gaze maths.
+	var disc_centre: Vector2 = Vector2.ZERO
+	if rect != null:
+		disc_centre = rect.global_position + rect.size * 0.5
+	# A --headless run has no rendering device: the viewport texture is never
+	# produced, so there are no pixels to measure. That is a limitation of the
+	# environment, not a passing test, so it is REPORTED rather than silently
+	# skipped — and the suite runs this flow under Xvfb precisely so the check
+	# has a real GPU. See tools/godot_validate.sh.
+	if not _has_gpu():
+		print("  SKIP  the vision disc is centred on the RENDERED pupil"
+			+ "  [no rendering device; run under xvfb-run]")
+	else:
+		var pupil_centre: Vector2 = await _measure_pupil_centre(core)
+		_ok("the pupil was locatable on screen", pupil_centre != Vector2.INF)
+		if pupil_centre != Vector2.INF:
+			_ok("the vision disc is centred on the RENDERED pupil",
+				disc_centre.distance_to(pupil_centre) <= 12.0,
+				"disc %s vs pupil %s (%.1fpx apart)" % [
+					str(disc_centre.round()), str(pupil_centre.round()),
+					disc_centre.distance_to(pupil_centre)])
 
 	# Releasing must clear the preview, or a stale glyph sits in the pupil
 	# after the finger has gone.
@@ -359,3 +464,68 @@ func _phase2_live() -> void:
 	_ok("clearing the hover hides the vision", settled)
 	open_hub.free()
 	await process_frame
+
+
+## Is there a real rendering device to read pixels from?
+##
+## Under --headless the video driver is "Dummy" and RenderingServer never
+## emits frame_post_draw, so awaiting it hangs the run forever rather than
+## failing — which is exactly what happened: the suite blocked for 28 minutes
+## on this flow before being killed.
+func _has_gpu() -> bool:
+	return not str(DisplayServer.get_name()).begins_with("headless") \
+		and RenderingServer.get_video_adapter_name() != ""
+
+
+## Centroid of the rendered pupil, in global screen coordinates.
+##
+## The pupil is the large DARK disc at the middle of a bright iris, so a
+## luminance threshold over the eye's rect finds it without reproducing any of
+## the gaze arithmetic under test. Returns Vector2.INF when nothing dark
+## enough is found — which is itself asserted, so a headless run that renders
+## no pixels reports a failure rather than a silent pass.
+##
+## The vision glyph is drawn INSIDE the pupil in a bright tint, so it is
+## excluded by the same threshold rather than dragging the centroid toward
+## itself.
+func _measure_pupil_centre(core: Control) -> Vector2:
+	if core == null:
+		return Vector2.INF
+	await RenderingServer.frame_post_draw
+	var img: Image = core.get_viewport().get_texture().get_image()
+	if img == null:
+		return Vector2.INF
+	# SEARCH A DISC, NOT THE WHOLE RECT.
+	#
+	# The eyeball is inscribed in a square control, so the rect's corners are
+	# dark BACKGROUND outside the sclera, plus the shadowed canthus at each
+	# side. Scanning the full rect pulled the centroid toward the geometric
+	# middle and reported the pupil 58px from where it renders — enough to
+	# mask the very offset under test. Measured across search radii:
+	#
+	#     120px -> (533, 830)     150px -> (534, 808)
+	#     180px -> (534, 807)     250px -> (540, 906)   corners bleed in
+	#
+	# 0.36 of the side (180px on a 500px eye) is stable and comfortably
+	# larger than the pupil at full dilation.
+	var centre: Vector2 = core.get_global_rect().position + core.size * 0.5
+	var limit: float = minf(core.size.x, core.size.y) * PUPIL_SEARCH_FRAC
+	var sum: Vector2 = Vector2.ZERO
+	var count: int = 0
+	var y: int = int(centre.y - limit)
+	while y < int(centre.y + limit):
+		var x: int = int(centre.x - limit)
+		while x < int(centre.x + limit):
+			if x >= 0 and y >= 0 and x < img.get_width() and y < img.get_height():
+				if Vector2(x, y).distance_to(centre) <= limit \
+						and img.get_pixel(x, y).get_luminance() < PUPIL_DARK_MAX:
+					sum += Vector2(x, y)
+					count += 1
+			x += 2
+		y += 2
+	if count < 200:
+		return Vector2.INF
+	return sum / float(count)
+
+
+

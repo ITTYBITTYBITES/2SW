@@ -148,6 +148,11 @@ func _setup() -> void:
 	# Default is false, so forgetting the flag TEACHES rather than skips.
 	var suppress: bool = bool(payload.get("skip_tutorial", false)) or is_anomaly_run()
 	if not suppress and not TutorialScript.is_seen(_trial_id):
+		# Paint the readouts BEFORE the briefing goes up. _refresh_metrics()
+		# normally first runs inside begin_trial(), which the tutorial defers —
+		# so the HUD sat on its scene placeholder ("0 / 0  (0%)") behind the
+		# overlay, which is exactly the stale counter that was reported.
+		_refresh_metrics()
 		_present_tutorial()
 		return
 	begin_trial()

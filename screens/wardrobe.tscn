@@ -96,18 +96,12 @@ theme_override_constants/separation = 10
 [node name="BackButton" type="Button" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -140.0
-offset_top = -112.0
-offset_right = 140.0
-offset_bottom = -48.0
-grow_horizontal = 2
-grow_vertical = 0
-text = "Back"
+anchors_preset = 0
+offset_left = 24.0
+offset_top = 60.0
+offset_right = 172.0
+offset_bottom = 124.0
+text = "‹  Back"
 
 [node name="SettingsButton" type="Button" parent="."]
 unique_name_in_owner = true

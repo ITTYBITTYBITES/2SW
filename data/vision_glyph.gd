@@ -41,11 +41,32 @@ enum Shape {
 
 ## Diameter of the preview disc as a fraction of the eye's short side.
 ##
-## 0.60 is inherited verbatim from v1's VISION_DISC_FRAC. It is the largest
-## disc that still sits inside the iris ring rather than overlapping the
-## limbus, which is what makes the symbol read as being *in* the eye rather
-## than pasted over it.
-const DISC_FRACTION: float = 0.60
+## 0.34, NOT v1's 0.60. Reported as "i thought the iris was suppose to show a
+## preview of shard..i do not think this is working correctly" — and it WAS
+## drawing, which is why every existence check passed. It was simply far too
+## big to read as being inside the eye.
+##
+## Measured on a GPU capture at the design viewport, radially scanning mean
+## luminance out from the eye centre:
+##
+##     pupil edge (dark -> iris)   r = 38px   ->  ~76px diameter
+##     iris outer edge             r = 145px
+##     0.60 of a 500px eye                        300px diameter
+##
+## The disc was FOUR TIMES the pupil it is supposed to sit in, so the glyph
+## sprawled across the whole iris and over the collarette. v1's 0.60 was
+## calibrated against v1's much larger pupil; this eye's pupil_max is 0.46 of
+## the half-side and it renders at REST_DILATION 0.5.
+##
+## 0.30 gives a 150px disc. It must fit at the SMALLEST pupil the glyph is
+## ever shown at, not the largest: dilation breathes around REST_DILATION 0.5,
+## where the pupil renders at lerp(0.20, 0.46, 0.5) * 500 = 165px. 0.34 was
+## tried first and measured 170px against a 168px pupil — over by 2px, caught
+## by the containment check rather than by eye.
+##
+## 150px fills 91% of that pupil: edge to edge without touching the
+## collarette, and with room for the breathing term to shrink it.
+const DISC_FRACTION: float = 0.30
 
 ## Animation contract, also inherited from v1 (IrisCore.show_vision).
 ## Fade and scale run in parallel; the scale uses TRANS_BACK/EASE_OUT so the

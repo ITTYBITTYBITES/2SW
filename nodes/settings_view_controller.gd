@@ -165,6 +165,22 @@ func _build() -> void:
 	_add_note("Two Second Witness is free to play. No purchases, ever — "
 		+ "cosmetics are earned through play, rewarded ads, or surprise drops.")
 
+	_add_section("Help")
+	# THE BRIEFINGS MUST BE RE-READABLE.
+	#
+	# Each trial explains itself once, on first entry, and then never again.
+	# A player who tapped past it — or who tested an early build before the
+	# briefings existed — had no way back to the rules and no way to find out
+	# what a mode wanted. Clearing the seen-list makes every mode teach itself
+	# again on next entry.
+	_add_button("Show Trial Instructions Again", func() -> void:
+		AudioManager.play_sfx(&"ui_tap")
+		Save.set_v(Save.SEC_META, "tutorials_seen", [])
+		Save.flush()
+		Bus.toast.emit("Instructions will show again", "?"))
+	_add_note("Each trial explains itself the first time you play it. "
+		+ "This brings those explanations back.")
+
 	_add_section("Data")
 	_add_danger_button("Reset All Progress", func() -> void:
 		AudioManager.play_sfx(&"ui_tap")

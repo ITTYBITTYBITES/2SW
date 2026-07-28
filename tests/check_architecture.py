@@ -17,6 +17,7 @@ mandatory rules, so they can't erode as the project grows.
 
 Run: python3 tests/check_architecture.py
 """
+import json
 import pathlib
 import re
 import sys
@@ -374,13 +375,58 @@ BINARY_ASSET_SUFFIXES = {
 #
 # Anything outside art/hero/ still fails Rule F.
 HERO_ASSET_DIR = "art/hero"
-HERO_ASSET_BUDGET_MB = 4.0
+
+# ── THE BUDGET, RAISED BY EXPLICIT PRODUCT DECISION ──────────────────────
+#
+# Was 4.0 MB. Lifted with the audio rebuild: "the artificial < 4 MB asset
+# budget limit is LIFTED. Focus on audio quality and dynamic feel over
+# file-size micro-optimization."
+#
+# Raised rather than REMOVED. The rule exists because v1 shipped 69 MB of
+# unoptimised sprites, and a cap of infinity does not catch that happening
+# again — it just moves the failure to the Play Store listing. 16 MB is
+# roughly 4x current usage, which is room to add layers and voices freely
+# while still failing loudly if something enormous lands by accident.
+HERO_ASSET_BUDGET_MB = 16.0
 
 # ── The voice pack, derived from the manifest rather than listed ─────────
 #
 # Reading dialogue_manifest.gd means the allowlist IS the authored script. A
 # clip with no line is orphaned and a line with no clip is missing, and both
 # are reported below — there is no hand-maintained list to fall out of date.
+# ── THE LAYER LIBRARY, DERIVED FROM ITS OWN MANIFEST ─────────────────────
+#
+# Amended by explicit product decision, which also LIFTED the 4 MB cap: the
+# instruction was "focus on audio quality and dynamic feel over file-size
+# micro-optimization".
+#
+# The three-sine pad was the reason. Sines have no timbre — no attack, no
+# inharmonicity, no noise floor — so the bed read as a test tone, and its
+# 110 Hz root sat in the sub-bass where a phone speaker reproduces nothing.
+# Physical modelling of bowed glass and struck bodies is not something to
+# re-derive per frame on a phone, so the layers are baked.
+#
+# Like the voice pack, this is NOT a directory allowlist. Every file must be
+# claimed by a recipe in tools/bake_audio_layers.py, which writes the
+# manifest below; an orphan or a stale bake fails the build. The baker's
+# --check re-verifies each file's SHA against its recipe, so the library
+# cannot drift from the code that produces it.
+def _expected_layer_clips() -> set:
+    manifest = ROOT / "audio" / "layers" / "manifest.json"
+    if not manifest.is_file():
+        return set()
+    try:
+        data = json.loads(manifest.read_text())
+    except (ValueError, OSError):
+        return set()
+    out = {"audio/layers/manifest.json"}
+    for entry in data.get("layers", []):
+        name = entry.get("file")
+        if name:
+            out.add(f"audio/layers/{name}")
+    return out
+
+
 def _expected_voice_clips() -> set:
     manifest = ROOT / "data" / "dialogue_manifest.gd"
     if not manifest.is_file():
@@ -403,6 +449,7 @@ def _expected_voice_clips() -> set:
 
 
 _VOICE_CLIPS = _expected_voice_clips()
+_LAYER_CLIPS = _expected_layer_clips()
 
 ASSET_ALLOWLIST = {
     # The launcher icon must be a real file for the Android manifest, and it
@@ -455,6 +502,10 @@ ASSET_ALLOWLIST = {
     #   * counted against the SAME 4 MB budget as the art
     #   * the generator's --check proves each clip still matches its text
     *_VOICE_CLIPS,
+    # ── THE PROCEDURAL LAYER LIBRARY ─────────────────────────────────────
+    # See _expected_layer_clips(). Derived from the baker's manifest, so a
+    # file nothing has a recipe for is a violation.
+    *_LAYER_CLIPS,
     # A contact sheet of the 23 procedural cosmetics, for humans reading
     # docs/features/. Never loaded at runtime: nothing in .gd or .tscn
     # references it, and docs/* is excluded from every export preset.
@@ -541,6 +592,11 @@ if _hero_dir.is_dir():
     # describe "some of the bytes", which is not a budget.
     if _voice_dir.is_dir():
         _hero_bytes += sum(f.stat().st_size for f in _voice_dir.glob("*.ogg")
+                           if f.is_file())
+    # The procedural layer library ships as well, for the same reason.
+    _layer_dir = ROOT / "audio" / "layers"
+    if _layer_dir.is_dir():
+        _hero_bytes += sum(f.stat().st_size for f in _layer_dir.glob("*.ogg")
                            if f.is_file())
     _hero_mb = _hero_bytes / (1024 * 1024)
     if _hero_mb > HERO_ASSET_BUDGET_MB:

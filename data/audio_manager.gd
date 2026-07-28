@@ -55,7 +55,8 @@ const MAX_VOICE_SECONDS: float = 0.85
 ## voice + pad + SFX cannot sum past full scale.
 const MASTER_CEILING: float = 0.72
 const PAD_GAIN: float = 0.16
-const VOICE_GAIN: float = 0.34
+## Lowered from 0.34 on request: she sat slightly loud against the pad.
+const VOICE_GAIN: float = 0.26
 const SFX_GAIN: float = 0.28
 
 ## Minimum fade applied to the head and tail of every one-shot, in seconds.
@@ -126,6 +127,12 @@ var _pad_active: bool = false
 var _pad_intensity: float = 0.0
 var _pad_target_intensity: float = 0.0
 var _pad_root: float = 110.0
+## Rank tier, kept so a mode change can retune without losing the rank pitch.
+var _rank_tier: int = 0
+## Transposition and harmonic colour of the current musical mode. Defaults are
+## the neutral bed: no transposition, a perfect fifth on the middle partial.
+var _mode_semitones: float = 0.0
+var _pad_colour: float = 1.5
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _enabled: bool = true
@@ -295,7 +302,7 @@ func _refresh_from_settings() -> void:
 	_enabled = bool(Save.setting("audio_enabled", true))
 	_master_level = clampf(float(Save.setting("master_volume", 0.9)), 0.0, 1.0)
 	_pad_level = clampf(float(Save.setting("pad_volume", 1.0)), 0.0, 1.0)
-	_voice_level = clampf(float(Save.setting("voice_volume", 1.0)), 0.0, 1.0)
+	_voice_level = clampf(float(Save.setting("voice_volume", 0.80)), 0.0, 1.0)
 	_sfx_level = clampf(float(Save.setting("sfx_volume", 1.0)), 0.0, 1.0)
 	_apply_levels()
 
@@ -304,6 +311,21 @@ func _refresh_from_settings() -> void:
 ## -60 dB rather than linear_to_db(0), which is -inf and produces a NaN warning.
 func _apply_levels() -> void:
 	_set_channel(_pad_player, _pad_level)
+	# THE LAYER BED IS PART OF THE PAD CHANNEL.
+	#
+	# Without this the settings slider moved the synthesised underlay and
+	# left the sampled layers — which are now the LOUDER of the two — at full
+	# volume. A "pad" slider that quietens 20% of the pad is worse than no
+	# slider, because the player concludes the control is broken.
+	#
+	# Resolved by name rather than by the LayerEngine global: AudioManager is
+	# registered BEFORE LayerEngine, so during its own _ready() the autoload
+	# does not exist yet and naming it directly throws.
+	var engine: Node = get_tree().root.get_node_or_null("LayerEngine")
+	if engine != null and engine.has_method("set_level"):
+		engine.call("set_level", _pad_level * _master_level)
+	if engine != null and engine.has_method("set_enabled"):
+		engine.call("set_enabled", _enabled)
 	_set_channel(_voice_player, _voice_level)
 	# The clip player is a voice channel too: without this the settings slider
 	# would silence the formant fallback and leave the real speech at full
@@ -357,7 +379,42 @@ func channel_level(channel: StringName) -> float:
 func _on_palette_changed(tier: int) -> void:
 	# Rank retunes the pad's root note, so progression is audible as well as
 	# visible. Rises by a semitone per tier, wrapping within one octave.
-	_pad_root = 110.0 * pow(2.0, float(tier % 12) / 12.0)
+	_rank_tier = tier
+	_retune()
+
+
+## Recompute the root from rank AND the current musical mode.
+##
+## Rank sets the pitch; the mode sets the interval the pad's second partial
+## sits at. Kept in one place so the two cannot fight: setting a mode used to
+## be possible only by overwriting _pad_root directly, which the next rank-up
+## silently reverted.
+func _retune() -> void:
+	_pad_root = (110.0 * pow(2.0, float(_rank_tier % 12) / 12.0)
+		* pow(2.0, _mode_semitones / 12.0))
+
+
+## Give the pad a musical character. `semitones` transposes the root and
+## `colour` sets the interval of the middle partial — a perfect fifth (1.5)
+## is neutral, a minor third (1.2) is darker, a fourth (1.335) is unsettled.
+##
+## WHY THIS EXISTS
+## The pad was ONE 110 Hz drone for the entire game. Difficulty moved its
+## intensity, but every trial sounded identical, so the audio said nothing
+## about which mode you were in. This is the smallest lever that makes four
+## trials feel like four places without shipping any audio assets.
+func set_pad_mode(semitones: float, colour: float) -> void:
+	_mode_semitones = clampf(semitones, -12.0, 12.0)
+	_pad_colour = clampf(colour, 1.1, 2.0)
+	_retune()
+
+
+func pad_colour() -> float:
+	return _pad_colour
+
+
+func pad_root() -> float:
+	return _pad_root
 
 
 func set_enabled(enabled: bool) -> void:
@@ -436,7 +493,12 @@ func _fill_pad() -> void:
 
 		var sample: float = 0.0
 		sample += sin(_pad_phase * TAU * root) * 0.55
-		sample += sin(_pad_phase * TAU * root * 1.5 * (1.0 + lfo * 0.002)) * 0.28
+		# The middle partial's interval IS the mode's colour. A fifth reads
+		# neutral, a minor third dark, a fourth unresolved — which is what
+		# makes the four trials sound like different rooms rather than the
+		# same drone at different volumes.
+		sample += sin(_pad_phase * TAU * root * _pad_colour
+			* (1.0 + lfo * 0.002)) * 0.28
 		sample += sin(_pad_phase * TAU * root * 2.01) * 0.14 * _pad_intensity
 
 		# Intensity adds a shimmering upper partial.

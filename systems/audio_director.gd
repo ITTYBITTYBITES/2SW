@@ -44,6 +44,35 @@ const PAD_URGENT: float = 0.60
 const PAD_MENU: float = 0.14
 const PAD_RESULTS: float = 0.26
 
+## Musical mode per trial: [transposition in semitones, middle-partial ratio].
+##
+## THE PAD WAS ONE DRONE FOR THE WHOLE GAME. `_on_trial_started()` already
+## received `trial_id` and threw it away, so all four modes sounded identical
+## and only the intensity moved. Asked about directly: "So I thought they were
+## supposed to be music loops to with the different gain modes".
+##
+## These are not loops — nothing here ships an audio file, and Rule F's budget
+## has no room for four music beds. They are the same generative pad retuned,
+## which costs zero bytes and cannot ever repeat:
+##
+##   false_witness      -3, 1.500  a fifth, pitched low: watchful, steady
+##   sequence_recall    +2, 1.335  a fourth: unresolved, "there is more coming"
+##   cognitive_conflict  0, 1.200  a minor third: the dissonant one, for the
+##                                 mode built on interference
+##   facet_cascade      +5, 1.682  a major sixth: brighter and more open
+##
+## The hub deliberately returns to the neutral bed, so leaving a trial is
+## audible as a release rather than just a volume drop.
+const TRIAL_MODES: Dictionary = {
+	"false_witness": [-3.0, 1.500],
+	"sequence_recall": [2.0, 1.335],
+	"cognitive_conflict": [0.0, 1.200],
+	"facet_cascade": [5.0, 1.682],
+}
+
+## The neutral bed, restored on leaving a trial.
+const MODE_NEUTRAL: Array = [0.0, 1.5]
+
 ## Voice length, in "syllables", per context. AudioManager scales the hum's
 ## duration from this, so a short acknowledgement stays short.
 const SYLLABLES_TOUCH: int = 5
@@ -61,9 +90,16 @@ const TICK_INTERVAL: float = 0.42
 
 var _wired: bool = false
 var _in_trial: bool = false
+## Consecutive correct answers in the current trial. Drives the STREAK state,
+## which is the one gameplay dimension the audio never responded to: a player
+## on a six-hit run heard exactly what a player missing everything heard.
+var _streak_run: int = 0
 var _urgent: bool = false
 var _tick_accum: float = 0.0
 var _last_touch_voice_msec: int = -100000
+## Completion context resolved at settlement, kept only so a future hub-side
+## greeting could reference how the last run went. Not spoken during a trial.
+var _pending_completion: StringName = &""
 ## Counts every sound this director has dispatched, by kind. Test-visible, so
 ## a check can prove a signal produced a sound rather than merely firing.
 var _dispatch_counts: Dictionary = {}
@@ -142,6 +178,39 @@ func is_in_trial() -> bool:
 	return _in_trial
 
 
+func streak_run() -> int:
+	return _streak_run
+
+
+## Answers needed for a run to read as "full" in the mix.
+##
+## Five, because a bracket is 6-8 rounds: reaching full intensity should be
+## achievable but not routine, and it must arrive before the trial ends or
+## the payoff never lands.
+const STREAK_FULL: float = 5.0
+
+
+## Push the run length to the layer engine and pick the play state.
+##
+## Urgency OUTRANKS streak: two seconds from failing, the mix must say so
+## even mid-run. Without this ordering a player on a hot streak got a bright
+## celebratory bed while their timer ran out, which is the opposite of the
+## information they need.
+func _push_streak() -> void:
+	LayerEngine.set_streak(clampf(float(_streak_run) / STREAK_FULL, 0.0, 1.0))
+	if _in_trial and not _urgent:
+		LayerEngine.set_state(_play_state())
+
+
+## The state a running trial should be in right now.
+func _play_state() -> int:
+	if _urgent:
+		return AudioScene.State.URGENT
+	if _streak_run >= 2:
+		return AudioScene.State.STREAK
+	return AudioScene.State.ACTIVE
+
+
 func is_urgent() -> bool:
 	return _urgent
 
@@ -156,11 +225,19 @@ func _on_iris_express(kind: String, _intensity: float) -> void:
 	match kind:
 		"reward":
 			_fire(&"reward")
+			# BUILD THE STREAK. The bed thickens and brightens as a run
+			# extends, so momentum is audible rather than only visible.
+			_streak_run += 1
+			_push_streak()
 			# A spoken reaction on EVERY hit would be exhausting inside a
 			# 2-second loop, so the voice is left to the round boundaries and
 			# the hit itself is a tone.
 		"miss":
 			_fire(&"error")
+			# A miss collapses the run. Losing the extra layers is the
+			# feedback: the room thins out under you.
+			_streak_run = 0
+			_push_streak()
 		"evolve":
 			_fire(&"sequence_bell")
 		"focus":
@@ -173,12 +250,26 @@ func _on_iris_express(kind: String, _intensity: float) -> void:
 			Log.warn("AudioDirector", "unhandled iris_express kind '%s'" % kind)
 
 
-func _on_trial_started(_trial_id: String, _bracket: int) -> void:
+func _on_trial_started(trial_id: String, _bracket: int) -> void:
 	_in_trial = true
 	_urgent = false
 	_tick_accum = 0.0
 	AudioManager.set_pad_intensity(PAD_TRIAL)
-	_voice(DialogueManifest.TRIAL_START, &"trial_focus")
+	# Retune the bed to this trial's mode. An unregistered id falls back to
+	# neutral rather than failing: a new mini-game should be audible on the
+	# day it is written, and adding a row here is the deliberate upgrade.
+	var mode: Array = TRIAL_MODES.get(trial_id, MODE_NEUTRAL)
+	AudioManager.set_pad_mode(float(mode[0]), float(mode[1]))
+	# THE LAYER BED. AudioManager's pad is now a thin harmonic underlay; the
+	# character of a trial comes from the sampled layers this selects.
+	_streak_run = 0
+	LayerEngine.set_mode(trial_id)
+	LayerEngine.set_streak(0.0)
+	LayerEngine.set_urgency(0.0)
+	LayerEngine.set_state(AudioScene.State.ACTIVE)
+	# NO SPOKEN LINE HERE. The Iris speaks on the hub only — a voice over a
+	# timed round competes with the concentration the round demands, and the
+	# clips are 1-3 seconds against a 2.2-second answer window.
 
 
 ## Closing line, toned by how it went. DialogueManifest.completion_context()
@@ -187,15 +278,21 @@ func _on_trial_completed(summary: Dictionary) -> void:
 	_in_trial = false
 	_set_urgent(false)
 	AudioManager.set_pad_intensity(PAD_RESULTS)
+	# Back to the neutral bed. Leaving a trial should be audible as a
+	# resolution, not merely as the volume coming down.
+	AudioManager.set_pad_mode(float(MODE_NEUTRAL[0]), float(MODE_NEUTRAL[1]))
+	_streak_run = 0
+	LayerEngine.set_neutral_mode()
+	LayerEngine.set_streak(0.0)
+	LayerEngine.set_urgency(0.0)
+	LayerEngine.set_state(AudioScene.State.RESULTS)
 
-	var accuracy: float = float(summary.get("accuracy", 0.0))
-	var context: StringName = DialogueManifest.completion_context(accuracy)
-	var emotion: StringName = &"streak_celebrate"
-	if accuracy < DialogueManifest.MID_ACCURACY:
-		emotion = &"warble_error"
-	elif accuracy < DialogueManifest.HIGH_ACCURACY:
-		emotion = &"hub_idle"
-	_voice(context, emotion)
+	# The completion line is deliberately NOT spoken: settlement routes
+	# straight to the results screen, whose summary already reports the same
+	# thing in text. The clips still exist and remain covered by the pack
+	# checks, so re-enabling this is one line if the hub feels too quiet.
+	_pending_completion = DialogueManifest.completion_context(
+		float(summary.get("accuracy", 0.0)))
 
 
 # ═════════════════════════════════════════════════════════════════════════
@@ -216,11 +313,15 @@ func _set_urgent(urgent: bool) -> void:
 	_tick_accum = 0.0
 	if urgent:
 		AudioManager.set_pad_intensity(PAD_URGENT)
+		LayerEngine.set_urgency(1.0)
+		LayerEngine.set_state(AudioScene.State.URGENT)
 		# Lead with a tick so the pressure is felt at the transition, not up
 		# to TICK_INTERVAL later.
 		_fire(&"stroop_pulse")
 	elif _in_trial:
 		AudioManager.set_pad_intensity(PAD_TRIAL)
+		LayerEngine.set_urgency(0.0)
+		LayerEngine.set_state(_play_state())
 
 
 func _process(delta: float) -> void:
@@ -279,12 +380,29 @@ func _on_route_changed(route: String, _payload: Dictionary) -> void:
 	if route != "trial":
 		_in_trial = false
 		_set_urgent(false)
+		# RESOLVE THE BED ON LEAVING, WHICHEVER WAY THEY LEFT.
+		#
+		# _on_trial_completed() also restores neutral, but that only fires on
+		# a trial that RAN TO THE END. Backing out, forfeiting, or jumping to
+		# Settings mid-round left the last trial's colour playing under every
+		# other screen — measured: the hub still sat on facet_cascade's major
+		# sixth after visiting it once.
+		AudioManager.set_pad_mode(
+			float(MODE_NEUTRAL[0]), float(MODE_NEUTRAL[1]))
+		_streak_run = 0
+		LayerEngine.set_neutral_mode()
+		LayerEngine.set_streak(0.0)
+		LayerEngine.set_urgency(0.0)
 	match route:
 		"hub":
 			AudioManager.set_pad_intensity(PAD_HUB)
+			LayerEngine.set_state(AudioScene.State.IDLE)
 		"trial":
 			AudioManager.set_pad_intensity(PAD_TRIAL)
+			LayerEngine.set_state(AudioScene.State.ACTIVE)
 		"results", "chrono_card":
 			AudioManager.set_pad_intensity(PAD_RESULTS)
+			LayerEngine.set_state(AudioScene.State.RESULTS)
 		_:
 			AudioManager.set_pad_intensity(PAD_MENU)
+			LayerEngine.set_state(AudioScene.State.MENU)

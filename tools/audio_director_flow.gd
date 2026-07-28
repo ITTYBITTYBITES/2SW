@@ -70,6 +70,7 @@ func _run() -> void:
 
 	await _check_hub(director, audio, bus, router)
 	await _check_trial(director, audio, router)
+	await _check_trial_modes(director, audio, router)
 	await _check_urgency(director, audio, router)
 	await _check_dead_signal_is_alive(bus)
 	await _check_voice_pack(audio)
@@ -139,8 +140,19 @@ func _check_trial(director: Node, audio: Node, router: Node) -> void:
 		{"trial_id": "false_witness", "skip_tutorial": true})
 	await _wait(1.2)
 
-	_ok("entering a trial speaks an opening line",
-		int(director.call("dispatch_count", &"voice:trial_start")) > start_before)
+	# INVERTED. This asserted that entering a trial SPEAKS, which is the
+	# behaviour that was reported as a defect: "the voice is only suppose to
+	# be on the the hub where the eye is". A 1-3 second clip lands on top of a
+	# 2.2 second answer window and competes with the concentration the round
+	# demands.
+	#
+	# Silence during a trial is now the contract, so silence is what is
+	# checked. Asserting the absence is the only version of this that catches
+	# a regression: the clips still exist, the manifest still lists them, and
+	# one uncommented line in _on_trial_started() brings the voice back.
+	_ok("entering a trial stays SILENT — the Iris speaks on the hub only",
+		int(director.call("dispatch_count", &"voice:trial_start")) == start_before,
+		"a spoken line landed inside a timed round")
 	_ok("the pad rises for a trial",
 		float(audio.get("_pad_target_intensity")) > 0.20,
 		"pad %.2f" % float(audio.get("_pad_target_intensity")))
@@ -164,6 +176,77 @@ func _check_trial(director: Node, audio: Node, router: Node) -> void:
 	await process_frame
 	_ok("a wrong answer makes a DIFFERENT sound",
 		int(director.call("dispatch_count", &"error")) > error_before)
+
+
+# ═════════════════════════════════════════════════════════════════════════
+## EVERY TRIAL SOUNDS LIKE ITSELF.
+##
+## The pad was a single 110 Hz drone for the whole game: _on_trial_started()
+## received trial_id and discarded it, so four modes shared one bed and only
+## the intensity moved.
+##
+## Checked by ENTERING each trial for real and reading the pad back, not by
+## inspecting the table — a table compared against itself proves nothing, and
+## a director that ignored TRIAL_MODES entirely would pass that.
+func _check_trial_modes(_director: Node, audio: Node, router: Node) -> void:
+	print("── each trial has its own musical bed ──")
+	var trials: Array[String] = [
+		"false_witness", "sequence_recall", "cognitive_conflict",
+		"facet_cascade",
+	]
+	var roots: Dictionary = {}
+	var colours: Dictionary = {}
+
+	for trial_id: String in trials:
+		await router.call("go", "hub")
+		await _wait(0.3)
+		await router.call("go", "trial",
+			{"trial_id": trial_id, "skip_tutorial": true})
+		await _wait(0.6)
+		roots[trial_id] = float(audio.call("pad_root"))
+		colours[trial_id] = float(audio.call("pad_colour"))
+		_ok("%s retunes the pad" % trial_id,
+			roots[trial_id] > 1.0,
+			"root %.2f Hz colour %.3f" % [roots[trial_id], colours[trial_id]])
+
+	# THE CENTRAL CLAIM: no two trials sound the same. A director that set
+	# every mode to the same value would satisfy every check above.
+	var distinct: int = 0
+	for i: int in range(trials.size()):
+		for j: int in range(i + 1, trials.size()):
+			var a: String = trials[i]
+			var b: String = trials[j]
+			if absf(roots[a] - roots[b]) > 0.5 \
+					or absf(colours[a] - colours[b]) > 0.01:
+				distinct += 1
+	# float division then int(): trials.size() is even here, but integer
+	# division silently truncating a pair count would understate the target
+	# and let a real collision pass.
+	var pairs: int = int(float(trials.size() * (trials.size() - 1)) / 2.0)
+	_ok("all four trials are musically distinct", distinct == pairs,
+		"%d of %d pairs differ" % [distinct, pairs])
+
+	# Returning to the hub must RESOLVE the bed, not leave the last trial's
+	# colour hanging under the menu.
+	await router.call("go", "hub")
+	await _wait(0.6)
+	_ok("the hub returns to the neutral bed",
+		is_equal_approx(float(audio.call("pad_colour")), 1.5),
+		"colour %.3f" % float(audio.call("pad_colour")))
+
+	# ...and the retuning must reach the SAMPLES, not just a variable. The
+	# generator is the only thing a player actually hears.
+	await router.call("go", "trial",
+		{"trial_id": "cognitive_conflict", "skip_tutorial": true})
+	await _wait(0.8)
+	_ok("the mode reached the running generator",
+		bool(audio.call("is_pad_playing"))
+		and is_equal_approx(float(audio.call("pad_colour")), 1.2),
+		"playing=%s colour=%.3f" % [
+			str(audio.call("is_pad_playing")),
+			float(audio.call("pad_colour"))])
+	await router.call("go", "hub")
+	await _wait(0.3)
 
 
 # ═════════════════════════════════════════════════════════════════════════

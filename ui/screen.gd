@@ -37,6 +37,14 @@ class_name Screen
 
 var payload: Dictionary = {}
 
+## Largest fraction of the screen a single safe-area inset may ever claim.
+##
+## A real notch is ~5% of the height and a gesture bar less than that. This is
+## a backstop against a platform reporting a rectangle in the wrong coordinate
+## space — which Windows does, and which cropped 555px off the bottom of every
+## screen in the game. See _resolve_safe_area().
+const SAFE_INSET_MAX_FRAC: float = 0.25
+
 var safe_top: float = 0.0
 var safe_bottom: float = 0.0
 var safe_left: float = 0.0
@@ -138,9 +146,46 @@ func _resolve_safe_area() -> void:
 	var win := DisplayServer.window_get_size()
 	var rect := DisplayServer.get_display_safe_area()
 
-	# Editor / desktop: no insets reported. Use a small margin so layouts
-	# designed here still look right on a notched phone.
-	if rect.size == Vector2i.ZERO or rect.size == win:
+	# ── DESKTOP AND EDITOR REPORT THE MONITOR, NOT THE WINDOW ────────────
+	#
+	# THE BUG THIS FIXES, and it broke every screen in the game.
+	#
+	# On Android get_display_safe_area() returns the window's usable area
+	# inside the notch and gesture bar, which is what the arithmetic below
+	# assumes. On Windows/Linux/macOS it returns the SCREEN WORK AREA — the
+	# whole monitor minus the taskbar — which has nothing to do with the
+	# game window and is usually much LARGER than it.
+	#
+	# Reported from a 817x1452 debug window on a 1080p monitor: safe area
+	# came back as 1920x1032, so
+	#
+	#     safe_bottom = (1452 - (0 + 1032)) * (1920/1452) = 555px
+	#     safe_right  = (817  - (0 + 1920)) * (1080/817)  = -1458px
+	#
+	# 555 virtual pixels were then subtracted from the bottom of every
+	# anchored child on every screen. The trial's play field collapsed and
+	# slid down, the hub's eye was cropped and its whole nav dock pushed off
+	# the bottom edge. Both were reported: "the top 40% of the screen is
+	# empty" and "the eye is cut off and i do not see any of the row items".
+	#
+	# The old guard only caught `rect.size == win` — an exact match — which
+	# is true only when the window happens to fill the work area exactly.
+	# Any other window size fell through into the phone branch.
+	#
+	# A safe area is only meaningful when it is a SUBSET of our own window.
+	# Anything else is a different rectangle in a different coordinate space,
+	# and the only correct response is to ignore it.
+	var plausible: bool = (
+		rect.size.x > 0 and rect.size.y > 0
+		and win.x > 0 and win.y > 0
+		and rect.position.x >= 0 and rect.position.y >= 0
+		and rect.position.x + rect.size.x <= win.x
+		and rect.position.y + rect.size.y <= win.y
+		and rect.size != win
+	)
+	if not plausible:
+		# Editor / desktop: no real insets. Use a small margin so layouts
+		# designed here still look right on a notched phone.
 		safe_top = 28.0
 		safe_bottom = 28.0
 		safe_left = 0.0
@@ -160,6 +205,19 @@ func _resolve_safe_area() -> void:
 	# Always keep a little breathing room off the gesture bar.
 	safe_bottom = maxf(safe_bottom, 24.0)
 	safe_top = maxf(safe_top, 16.0)
+
+	# LAST-DITCH SANITY BOUND. Even a plausible-looking rect must never eat
+	# a large fraction of the screen: a real notch is ~5% of the height and
+	# a gesture bar less. Anything past a quarter is a bad reading, not a
+	# device, and silently cropping the game is the worst possible response.
+	var cap: float = vp.y * SAFE_INSET_MAX_FRAC
+	if safe_top > cap or safe_bottom > cap:
+		Log.warn("Screen", ("implausible safe area %s in a %s window; "
+			+ "insets clamped") % [str(rect), str(win)])
+		safe_top = clampf(safe_top, 0.0, cap)
+		safe_bottom = clampf(safe_bottom, 0.0, cap)
+	safe_left = clampf(safe_left, 0.0, vp.x * SAFE_INSET_MAX_FRAC)
+	safe_right = clampf(safe_right, 0.0, vp.x * SAFE_INSET_MAX_FRAC)
 
 
 ## Names a child is allowed to keep at full bleed. A background must reach the

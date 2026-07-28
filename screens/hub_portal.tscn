@@ -34,7 +34,7 @@ anchor_bottom = 1.0
 offset_left = 80.0
 offset_top = 216.0
 offset_right = -80.0
-offset_bottom = -256.0
+offset_bottom = -400.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -62,35 +62,36 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="LeftSidebar" type="VBoxContainer" parent="."]
+[node name="NavDock" type="VBoxContainer" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 9
-anchor_bottom = 1.0
+anchors_preset = 0
 offset_left = 24.0
-offset_top = 260.0
-offset_right = 136.0
-offset_bottom = -260.0
-grow_vertical = 2
-mouse_filter = 2
-alignment = 1
-script = ExtResource("4_sidebar")
-
-[node name="RightSidebar" type="VBoxContainer" parent="."]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 11
-anchor_left = 1.0
+offset_top = -344.0
+offset_right = -24.0
+offset_bottom = -72.0
+anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -136.0
-offset_top = 260.0
-offset_right = -24.0
-offset_bottom = -260.0
-grow_horizontal = 0
-grow_vertical = 2
 mouse_filter = 2
 alignment = 1
+
+[node name="PrimaryRail" type="BoxContainer" parent="NavDock"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+alignment = 1
+vertical = false
+script = ExtResource("4_sidebar")
+
+[node name="SecondaryRail" type="BoxContainer" parent="NavDock"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+alignment = 1
+vertical = false
 script = ExtResource("4_sidebar")
 
 [node name="Chrome" type="Control" parent="."]
@@ -134,8 +135,8 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -232.0
-offset_bottom = -196.0
+offset_top = -394.0
+offset_bottom = -358.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2

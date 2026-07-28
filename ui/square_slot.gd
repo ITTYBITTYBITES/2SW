@@ -50,7 +50,16 @@ class_name SquareSlot
 ## screen size.
 
 ## Never render the child below this. A too-small eye is worse than none.
-@export var hide_below: float = 64.0
+##
+## RAISED FROM 64. The nav dock reserves a fixed 272px block at the bottom of
+## the hub, so on a short screen (800x600, 360x640) the slot was still handing
+## the eye ~70px while the HOUSING drawn around it — 1.95x the eye, reaching
+## 0.848 of that half-span — spilled straight over the dock. The polish audit
+## caught rail nodes sitting on the carved metal.
+##
+## An eye smaller than this is not a hero element anyway; hiding it leaves a
+## clean, navigable hub instead of a squashed one.
+@export var hide_below: float = 200.0
 
 ## Never grow the child past this. Its design size.
 ## REDUCED FROM 520 TO MAKE ROOM FOR THE HERO HOUSING.
@@ -65,7 +74,17 @@ class_name SquareSlot
 ## At 520 the frame's outer edge is 430px and the labels are buried. At 480 it
 ## is 397px, which clears the label ring with margin while the frame still sits
 ## outside the eyeball (metal at 249px vs a 240px eye edge).
-@export var max_side: float = 480.0
+## 440, not 480. Every destination now has a rail node WITH A CAPTION, and a
+## caption is wider than the 68px disc it labels — "Wardrobe" and "Progress"
+## were printing over the carved frame. Pulling the eye in gives the captions
+## clean background to sit on.
+## Raised from 440 now that the rails run ABOVE and BELOW rather than beside
+## the eye — nothing occupies the left and right margins any more.
+##
+## 500, not 560. HOUSING_SPAN multiplies this by 1.95, so 560 asks for a
+## 1092px frame on a 1080px screen and clips at both edges. 500 gives a 975px
+## frame with ~52px of margin either side.
+@export var max_side: float = 500.0
 
 ## Emitted after the slot resolves a new side length, so a controller can
 ## place satellites (the hub's five compass shards orbit the eye's radius).

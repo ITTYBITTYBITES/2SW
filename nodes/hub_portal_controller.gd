@@ -70,15 +70,48 @@ const MARKER_RING_FRAC: float = 0.90
 ## Adding a destination is appending one string here — the rail builds the
 ## node, the glyph comes from the shared VisionGlyph roster, and the caption
 ## comes from the table below. Nothing else changes.
-## Rail width. Wide enough for a 68px node plus its caption.
-const RAIL_WIDTH: float = 112.0
+## Horizontal room a rail steals from the shard-label ring.
+##
+## ZERO NOW. The rails used to be two 112px COLUMNS at the left and right
+## edges, so a westward "Wardrobe" label clamped to x = 0 landed underneath
+## the Settings node. Both rows now live in a dock BELOW the eye and nothing
+## occupies the side margins, so the ring is bounded by the window alone.
+## Kept as a named constant rather than deleted: the clamp still has to state
+## what it is reserving, and a future edge rail sets this instead of editing
+## the arithmetic.
+const RAIL_WIDTH: float = 0.0
 
-const SIDEBAR_LEFT: Array[String] = ["settings"]
-## Reserved. The rail is built and anchored so a future entry needs no
-## layout work.
-const SIDEBAR_RIGHT: Array[String] = []
+## EVERY destination is reachable from a rail, not only by dragging the eye.
+##
+## The compass drag still works and is still the nicer interaction — press the
+## eye, slide toward a direction, release. But it is undiscoverable: nothing
+## tells a new player that "up" means Trials, and the direction labels sat on
+## top of the hero frame where they read as decoration rather than as
+## instructions. A player who never finds the gesture could not reach
+## Wardrobe, Progress, Daily or Trends at all.
+##
+## ONE DOCK BELOW THE EYE, TWO ROWS OF THREE.
+##
+## Three arrangements were tried on the real device before this one:
+##
+##   side columns   the captions ("Wardrobe", "Progress") are wider than the
+##                  68px disc they label, so they printed over the carved hero
+##                  frame, and the eye had to shrink to 440px to make room
+##   top + bottom   band above the eye collided with the rank label on short
+##                  screens, and split a single navigation menu into two
+##                  visually unrelated strips
+##   THIS           the hero frame is WIDE and SHORT; the biggest continuous
+##                  free area on a 1080x1920 portrait screen is the ~600px
+##                  below it. One block reads as one menu.
+##
+## PRIMARY is the row you use every session; SECONDARY is the row you visit
+## occasionally. Nearest-to-the-eye is the more valuable slot, so it holds the
+## frequent three.
+const SIDEBAR_PRIMARY: Array[String] = ["trial", "daily", "trend_hub"]
+const SIDEBAR_SECONDARY: Array[String] = ["progress", "visage", "settings"]
 
 const SIDEBAR_CAPTIONS: Dictionary = {
+	"trial": "Trials",
 	"settings": "Settings",
 	"progress": "Progress",
 	"visage": "Wardrobe",
@@ -101,8 +134,9 @@ const PORTAL_COMMIT_TARGET: float = 1.0
 @onready var _background: ColorRect = %Background
 @onready var _iris_view: IrisView = %IrisView
 @onready var _iris_slot: SquareSlot = %IrisSlot
-@onready var _left_rail: HubSidebar = %LeftSidebar
-@onready var _right_rail: HubSidebar = %RightSidebar
+@onready var _dock: VBoxContainer = %NavDock
+@onready var _primary_rail: HubSidebar = %PrimaryRail
+@onready var _secondary_rail: HubSidebar = %SecondaryRail
 @onready var _markers: Control = %ShardMarkers
 @onready var _chrome: Control = %Chrome
 @onready var _title: Label = %TitleLabel
@@ -135,6 +169,13 @@ func _setup() -> void:
 		and Log.must(_markers != null, "HubPortal", "%ShardMarkers missing")
 		and Log.must(_chrome != null, "HubPortal", "%Chrome missing")
 		and Log.must(_hint != null, "HubPortal", "%HintLabel missing")
+		# The dock and both rows. Without these the hub still runs and looks
+		# fine — it just has NO NAVIGATION, which is exactly the failure a
+		# renamed scene node produces and exactly the one that is hardest to
+		# spot in a screenshot.
+		and Log.must(_dock != null, "HubPortal", "%NavDock missing")
+		and Log.must(_primary_rail != null, "HubPortal", "%PrimaryRail missing")
+		and Log.must(_secondary_rail != null, "HubPortal", "%SecondaryRail missing")
 		and Log.must(_state != null, "HubPortal", "state failed to resolve")
 	)
 	if not _wired:
@@ -185,10 +226,10 @@ func _exit_tree() -> void:
 		Bus.iris_tapped.disconnect(_on_iris_tapped)
 	if Bus.surprise_drop_earned.is_connected(_on_surprise_drop):
 		Bus.surprise_drop_earned.disconnect(_on_surprise_drop)
-	if _left_rail != null and _left_rail.node_pressed.is_connected(_on_sidebar_pressed):
-		_left_rail.node_pressed.disconnect(_on_sidebar_pressed)
-	if _right_rail != null and _right_rail.node_pressed.is_connected(_on_sidebar_pressed):
-		_right_rail.node_pressed.disconnect(_on_sidebar_pressed)
+	if _primary_rail != null and _primary_rail.node_pressed.is_connected(_on_sidebar_pressed):
+		_primary_rail.node_pressed.disconnect(_on_sidebar_pressed)
+	if _secondary_rail != null and _secondary_rail.node_pressed.is_connected(_on_sidebar_pressed):
+		_secondary_rail.node_pressed.disconnect(_on_sidebar_pressed)
 
 
 ## Accept a state passed through Router, or build one from persisted values.
@@ -207,10 +248,10 @@ func _resolve_state() -> IrisState:
 
 
 func _restyle_rails() -> void:
-	if _left_rail != null:
-		_left_rail.restyle()
-	if _right_rail != null:
-		_right_rail.restyle()
+	if _primary_rail != null:
+		_primary_rail.restyle()
+	if _secondary_rail != null:
+		_secondary_rail.restyle()
 
 
 func _on_palette_changed(_tier: int) -> void:
@@ -245,26 +286,26 @@ func _apply_state_to_view() -> void:
 	CosmeticMount.apply(_iris_view, _state)
 
 
-## Populate the sidebar rails.
+## Populate the two rows of the nav dock.
 ##
-## LEFT holds Settings alone. Profile and the rest live inside the settings
-## drawer rather than on the hub, because a hub whose job is to present one
-## eye should not also be a menu.
+## Both rows carry three entries, which is the whole point of the split: a
+## single row of six on a 1080px screen gives each node 180px, and a caption
+## like "Trend Hub" needs more than that before it starts eliding. Two rows of
+## three give each 344px and let the discs sit at a comfortable touch size
+## with air around them.
 ##
-## RIGHT is deliberately EMPTY and deliberately still built. The rail exists,
-## is anchored, and is centred, so adding a destination later is one
-## add_node() call rather than a scene edit — and the layout it will occupy
-## is already exercised by the polish audit today.
+## HubSidebar.MAX_NODES still guards the rail: a fourth entry on either row is
+## a Log.must failure rather than a silent overflow.
 func _build_sidebars() -> void:
 	if not _operational("_build_sidebars"):
 		return
-	for route: String in SIDEBAR_LEFT:
-		_left_rail.add_node(route, str(SIDEBAR_CAPTIONS.get(route, route)))
-	for route: String in SIDEBAR_RIGHT:
-		_right_rail.add_node(route, str(SIDEBAR_CAPTIONS.get(route, route)))
+	for route: String in SIDEBAR_PRIMARY:
+		_primary_rail.add_node(route, str(SIDEBAR_CAPTIONS.get(route, route)))
+	for route: String in SIDEBAR_SECONDARY:
+		_secondary_rail.add_node(route, str(SIDEBAR_CAPTIONS.get(route, route)))
 
-	_left_rail.node_pressed.connect(_on_sidebar_pressed)
-	_right_rail.node_pressed.connect(_on_sidebar_pressed)
+	_primary_rail.node_pressed.connect(_on_sidebar_pressed)
+	_secondary_rail.node_pressed.connect(_on_sidebar_pressed)
 
 
 ## A sidebar node was tapped. Same exit as a compass commit: clear the
@@ -295,16 +336,25 @@ func _vision_tint(route: String) -> Color:
 	return shifted
 
 
-## Show or hide the compass according to the gate.
+## Show or hide navigation according to the gate.
 ##
-## Markers are hidden rather than dimmed. A locked affordance the player
-## cannot use is noise on the one screen whose job is to say "tap here".
+## THE DOCK IS PART OF THE GATE NOW, and this is the bug that fixing a dead
+## `unlocked` local exposed. The gate's whole promise is that a brand-new
+## player gets ONE affordance — the hint says "Tap the Iris to begin your
+## first trial" — but the six dock nodes were built unconditionally and sat
+## right there under it. The gate hid the shard labels, which are invisible at
+## rest anyway, so it had stopped gating anything at all.
+##
+## Hidden rather than dimmed: a locked affordance the player cannot use is
+## noise on the one screen whose job is to say "tap here".
 func _apply_nav_gate() -> void:
 	if not _operational("_apply_nav_gate"):
 		return
 	var unlocked: bool = _state.nav_unlocked
+	_dock.visible = unlocked
 	for shard_id: int in _marker_labels.keys():
-		(_marker_labels[shard_id] as Label).visible = unlocked
+		# See _position_markers(): shown only during an active drag.
+		(_marker_labels[shard_id] as Label).visible = false
 	_refresh_chrome_text()
 
 
@@ -325,7 +375,7 @@ func _refresh_chrome_text() -> void:
 	# The hint is the only instruction on this screen, so it must describe
 	# what is ACTUALLY possible right now rather than the eventual feature.
 	if _state.nav_unlocked:
-		_set_hint("Drag from the Iris to travel")
+		_set_hint("Tap a node to travel, or drag from the Iris")
 	else:
 		_set_hint("Tap the Iris to begin your first trial")
 
@@ -386,47 +436,30 @@ func _layout() -> void:
 	_position_markers()
 
 
-## Keep the sidebars clear of the eye and inside the screen.
+## Tune the two dock rows to the width they were actually given.
 ##
-## The rails shipped at fixed offsets (24..136 horizontally, 260 from each
-## vertical edge) and both assumptions broke:
+## THE SCENE OWNS DOCK GEOMETRY; THIS ONLY TUNES SPACING.
 ##
-##   720x1280  the eye grows to fill the width, so its left edge reached 100
-##             while the rail still ended at 114 — a 14px overlap and a
-##             tap-target conflict on the hero assembly
-##   640x360   260 + 260 exceeds a 360px screen, collapsing the rail to zero
-##             height and hiding every node on it
+## Writing size/position from here was tried and does not hold: the rails
+## carry anchors and grow flags, and the container re-imposes them on the next
+## sort. Measured, a runtime write of 94px came back as 334px every frame.
+## Authoring the dock in the scene is what actually sticks — so %NavDock is a
+## VBox pinned to the bottom edge and each row is one of its children.
 ##
-## Derived from the live eye and the live chrome instead.
+## What is left is genuinely dynamic: three 68px discs plus captions need
+## ~330px, and at 360px wide the default 26px gaps push the outer two off the
+## screen. fit_to_extent() compresses the AIR, never the touch targets.
 func _fit_rails() -> void:
 	if not _operational("_fit_rails"):
 		return
-	var margin: float = Palette.SPACE_LG
-	var band_top: float = margin
-	if _rank_label != null:
-		band_top = _rank_label.position.y + _rank_label.size.y + margin
-	var band_bottom: float = size.y - margin
-	if _hint != null:
-		band_bottom = _hint.position.y - margin
-	# Never invert, and never leave less than a single node's worth.
-	var band_height: float = maxf(band_bottom - band_top, OrbitNode.DIAMETER)
 
-	# The rail may not cross the eye. Its own width plus a gap is the most it
-	# can claim from either edge.
-	var eye_left: float = size.x * 0.5
-	if _iris_view != null and _iris_view.is_visible_in_tree():
-		eye_left = _iris_view.position.x
-	var usable: float = maxf(eye_left - margin * 2.0, OrbitNode.DIAMETER)
-	var rail_width: float = minf(RAIL_WIDTH, usable)
-
-	for pair: Array in [[_left_rail, true], [_right_rail, false]]:
-		var rail: Control = pair[0]
+	for rail: Control in [_primary_rail, _secondary_rail]:
 		if rail == null:
 			continue
-		rail.size = Vector2(rail_width, band_height)
-		rail.position = Vector2(
-			margin if bool(pair[1]) else size.x - margin - rail_width,
-			band_top)
+		if rail.has_method("set_axis"):
+			rail.call("set_axis", false)
+		if rail.has_method("fit_to_extent"):
+			rail.call("fit_to_extent", rail.size.x)
 
 
 func _position_markers() -> void:
@@ -464,7 +497,12 @@ func _position_markers() -> void:
 		# so the gate hid five markers and the very next frame showed them
 		# all again. Two functions owning one property, resolved by making
 		# the gate the authority.
-		label.visible = _state.nav_unlocked
+		# HIDDEN BY DEFAULT. Every destination now has a rail node with the
+		# same caption, so these were printing each word twice — and they
+		# landed ON the carved frame, where they read as decoration rather
+		# than as direction hints. They light up only while a drag is
+		# actually in progress, which is the one moment they mean something.
+		label.visible = _state.nav_unlocked and _hovered != IrisState.CompassShard.NONE
 		var direction: Vector2 = SHARD_DIRECTIONS[shard_id]
 		var target: Vector2 = centre + direction * ring
 		label.size = label.custom_minimum_size
@@ -518,6 +556,11 @@ func _style_markers() -> void:
 	for shard_id: int in _marker_labels.keys():
 		var label: Label = _marker_labels[shard_id]
 		var active: bool = shard_id == _hovered
+		# Visibility is decided here as well as in _position_markers(), because
+		# hovering does not trigger a layout pass — without this the labels
+		# would never appear during the drag they exist to guide.
+		label.visible = (_state != null and _state.nav_unlocked
+			and _hovered != IrisState.CompassShard.NONE)
 		var colour: Color = Palette.accent() if active else Palette.COLOR_TEXT_FAINT
 		label.add_theme_color_override("font_color", colour)
 		label.add_theme_font_size_override("font_size",
@@ -610,7 +653,24 @@ func _navigate(route: String) -> void:
 	# resuming mid-dive with a blown-open pupil.
 	if _state != null:
 		_state.clear_interaction()
-	await Router.go(route)
+
+	# CHOOSE WHICH TRIAL. Without this the hub navigated to "trial" carrying no
+	# trial_id, so TrialController fell back to its hardcoded default and the
+	# player got false_witness EVERY time — sequence_recall, cognitive_conflict
+	# and facet_cascade were registered, weighted, tested and unreachable.
+	#
+	# TrialRegistry.pick_weighted() already existed and was never called. It
+	# honours the authored weights (35 / 25 / 20 / 20) and excludes
+	# trend_witness, which belongs to the Trend Hub.
+	var payload_out: Dictionary = {}
+	if route == "trial":
+		var chosen: String = TrialRegistry.pick_weighted()
+		payload_out["trial_id"] = chosen
+		if _state != null:
+			payload_out["iris_state"] = _state
+		Log.info("HubPortal", "entering trial '%s'" % chosen)
+
+	await Router.go(route, payload_out)
 
 
 # ═════════════════════════════════════════════════════════════════════════

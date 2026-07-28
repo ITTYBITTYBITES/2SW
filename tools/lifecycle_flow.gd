@@ -313,6 +313,155 @@ func _test_safe_area() -> void:
 		", ".join(zero_inset))
 	_ok("screens were actually checked", checked >= 5, str(checked))
 
+	await _test_safe_area_sanity()
+
+
+## AN INSET MUST NEVER EAT THE SCREEN.
+##
+## THE BUG THIS CATCHES, which shipped and broke every screen in the game:
+## get_display_safe_area() returns the window's usable area on Android, but
+## on desktop it returns the MONITOR WORK AREA — a rectangle in a different
+## coordinate space, routinely much larger than the game window.
+##
+## From a 817x1452 debug window on a 1080p monitor the engine reported
+## 1920x1032, and _resolve_safe_area() dutifully computed a 555px bottom
+## inset and a NEGATIVE right inset. 555 virtual pixels then came off the
+## bottom of every anchored child: the trial's play field collapsed and slid
+## down the screen, and the hub's entire nav dock was pushed off the bottom.
+##
+## The old check asserted only that insets were NON-ZERO, which 555 very much
+## is — it passed the whole time the game was unusable. Bounding the inset is
+## the property that actually matters.
+func _test_safe_area_sanity() -> void:
+	print("── safe-area insets stay plausible ──")
+	var screen_script: GDScript = load("res://ui/screen.gd") as GDScript
+	var cap: float = float(screen_script.get_script_constant_map().get(
+		"SAFE_INSET_MAX_FRAC", 0.25))
+	_ok("the base class declares an inset ceiling", cap > 0.0 and cap <= 0.5,
+		"%.2f" % cap)
+
+	# THIS CHECK IS ONLY MEANINGFUL WITH A REAL DISPLAY SERVER.
+	#
+	# Under --headless get_display_safe_area() returns a ZERO rect and
+	# window_get_size() returns (0,0), so _resolve_safe_area() takes the
+	# "no insets reported" branch and the desktop path is never executed.
+	# Verified by injection: reverting the fix entirely still produced ALL
+	# CHECKS PASSED headlessly. Under X11 the same call reports the whole
+	# 1920x1080 monitor against an 817x1452 window, which is the actual bug.
+	#
+	# Reported rather than skipped silently, and the suite runs this flow
+	# under xvfb-run so it really executes. See tools/godot_validate.sh.
+	if DisplayServer.get_name() == "headless":
+		print("  SKIP  safe-area sanity  [headless reports no display; "
+			+ "run under xvfb-run]")
+		return
+	_ok("the display server reports a real window",
+		DisplayServer.window_get_size().x > 0,
+		str(DisplayServer.window_get_size()))
+
+	# Drive the REAL resolver at a spread of window sizes, including the
+	# 817x1452 that was reported. Desktop always reports the monitor here, so
+	# every one of these exercises the mismatched-coordinate-space path.
+	var sizes: Array[Vector2i] = [
+		Vector2i(817, 1452),    # the reported window
+		Vector2i(1080, 1920),   # design target
+		Vector2i(540, 960),     # small window
+		Vector2i(1400, 900),    # landscape desktop
+	]
+	for win: Vector2i in sizes:
+		root.content_scale_size = Vector2i(1080, 1920)
+		root.size = win
+		await process_frame
+		var screen: Control = (load("res://screens/trial_host.tscn")
+			as PackedScene).instantiate()
+		screen.call("configure",
+			{"trial_id": "false_witness", "skip_tutorial": true})
+		root.add_child(screen)
+		await process_frame
+		await process_frame
+
+		var vp: Vector2 = root.get_visible_rect().size
+		var top: float = float(screen.get("safe_top"))
+		var bottom: float = float(screen.get("safe_bottom"))
+		var left: float = float(screen.get("safe_left"))
+		var right: float = float(screen.get("safe_right"))
+		var limit: float = vp.y * cap
+
+		_ok("%dx%d: the top inset is plausible" % [win.x, win.y],
+			top >= 0.0 and top <= limit, "%.0fpx of %.0f" % [top, vp.y])
+		_ok("%dx%d: the bottom inset is plausible" % [win.x, win.y],
+			bottom >= 0.0 and bottom <= limit,
+			"%.0fpx of %.0f" % [bottom, vp.y])
+		# A negative inset is nonsense in any coordinate space, and the old
+		# code produced -1458.
+		_ok("%dx%d: no inset is negative" % [win.x, win.y],
+			left >= 0.0 and right >= 0.0,
+			"left %.0f right %.0f" % [left, right])
+
+		# THE CONSEQUENCE, not just the number. The header must stay pinned
+		# near the top and the play field must keep real height — this is
+		# what the player actually reported seeing broken.
+		var title: Control = _descend(screen, "TitleLabel") as Control
+		var stage: Control = _descend(screen, "Stage") as Control
+		_ok("%dx%d: the trial header stays near the top" % [win.x, win.y],
+			title != null and title.global_position.y <= vp.y * 0.15,
+			"title y %.0f of %.0f" % [
+				title.global_position.y if title != null else -1.0, vp.y])
+		_ok("%dx%d: the play field keeps usable height" % [win.x, win.y],
+			stage != null and stage.size.y >= 200.0,
+			"stage %.0fx%.0f" % [
+				stage.size.x if stage != null else 0.0,
+				stage.size.y if stage != null else 0.0])
+		_ok("%dx%d: the play field stays on screen" % [win.x, win.y],
+			stage != null
+			and stage.global_position.y + stage.size.y <= vp.y + 1.0,
+			"stage bottom %.0f vs %.0f" % [
+				(stage.global_position.y + stage.size.y) if stage != null
+					else -1.0, vp.y])
+		screen.free()
+		await process_frame
+
+	# THE HUB'S NAV DOCK — the other half of the report: "i do not see any of
+	# the row items we did like settings etc."
+	var save: Node = root.get_node_or_null("Save")
+	_ok("Save is available to open the nav gate", save != null)
+	save.call("mark_returned_from_trial")
+	for win: Vector2i in [Vector2i(817, 1452), Vector2i(1080, 1920)]:
+		root.content_scale_size = Vector2i(1080, 1920)
+		root.size = win
+		await process_frame
+		var state_script: GDScript = ResourceLoader.load(
+			"res://data/iris_state.gd", "GDScript",
+			ResourceLoader.CACHE_MODE_IGNORE) as GDScript
+		var hub2: Control = (load("res://screens/hub_portal.tscn")
+			as PackedScene).instantiate()
+		var st: Object = state_script.new()
+		st.call("set_nav_unlocked", true)
+		hub2.call("configure", {"iris_state": st})
+		root.add_child(hub2)
+		await process_frame
+		await process_frame
+		var vp2: Vector2 = root.get_visible_rect().size
+		var dock: Control = _descend(hub2, "NavDock") as Control
+		_ok("%dx%d: the nav dock is on screen" % [win.x, win.y],
+			dock != null and dock.is_visible_in_tree()
+			and dock.global_position.y + dock.size.y <= vp2.y + 1.0,
+			"dock y %.0f..%.0f vs %.0f" % [
+				dock.global_position.y if dock != null else -1.0,
+				(dock.global_position.y + dock.size.y) if dock != null
+					else -1.0, vp2.y])
+		var eye: Control = _descend(hub2, "CoreEye") as Control
+		_ok("%dx%d: the eye is not cropped" % [win.x, win.y],
+			eye != null and eye.global_position.y >= -1.0
+			and eye.global_position.y + eye.size.y <= vp2.y + 1.0,
+			"eye y %.0f..%.0f vs %.0f" % [
+				eye.global_position.y if eye != null else -1.0,
+				(eye.global_position.y + eye.size.y) if eye != null
+					else -1.0, vp2.y])
+		hub2.free()
+		await process_frame
+
+
 	# A background must still reach the physical edge, or a notch is framed
 	# by bars of the wrong colour.
 	var hub: Control = (load("res://screens/daily_hub.tscn") as PackedScene).instantiate()
@@ -625,3 +774,15 @@ func _test_screen_dialog_does_not_pause() -> void:
 	dialog.hide()
 	await create_timer(0.3).timeout
 	await _teardown(app)
+
+
+## Find a node by name anywhere under `node`. %UniqueName only resolves inside
+## its owner scene, and CoreEye is owned by iris_view.tscn.
+func _descend(node: Node, want: String) -> Node:
+	if node.name == want:
+		return node
+	for child: Node in node.get_children():
+		var found: Node = _descend(child, want)
+		if found != null:
+			return found
+	return null

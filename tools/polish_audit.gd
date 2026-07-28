@@ -99,6 +99,7 @@ func _run() -> void:
 	await _audit_trial_field()
 	await _audit_trial_hud()
 	await _audit_visible_on_device()
+	await _audit_trial_variety()
 
 	print("\n═══════════════════════════════════")
 	if _fails.is_empty():
@@ -472,8 +473,27 @@ func _audit_shard_placement() -> void:
 			await process_frame
 			continue
 
-		_ok("%dx%d: all five shards visible" % [viewport.x, viewport.y],
-			labels.size() == 5, "%d shown" % labels.size())
+		# THE SHARD LABELS ARE HIDDEN UNTIL A DRAG BEGINS.
+		#
+		# They used to be permanently visible, which printed the same six
+		# words twice — once on the rail node, once floating over the carved
+		# frame where they read as decoration. Every destination now has a
+		# tappable rail node, so these exist only to guide an in-progress
+		# drag and appear on hover.
+		#
+		# Asserting they are ABSENT at rest is the real property: a label
+		# sitting on the hero frame is the defect that was reported.
+		_ok("%dx%d: shard labels stay hidden at rest" % [viewport.x, viewport.y],
+			labels.is_empty(), "%d showing with no drag" % labels.size())
+
+		# Their placement is still checked below, against the full roster
+		# rather than only what happens to be visible.
+		labels.clear()
+		for child: Node in markers.get_children():
+			if child is Label:
+				labels.append(child as Label)
+		_ok("%dx%d: all five shards exist" % [viewport.x, viewport.y],
+			labels.size() == 5, "%d found" % labels.size())
 
 		var eye_centre: Vector2 = eye.global_position + eye.size * 0.5
 		for label: Label in labels:
@@ -757,12 +777,11 @@ func _strip_comments(code: String) -> String:
 ##
 ## Source-level rather than rendered, because the sandbox has no display
 ## server. The rendered proof lives in tools/raster_preview.py.
-## The hub sidebars stay usable and out of the eye's way.
+## The hub nav dock stays usable and out of the hero frame's way.
 ##
-## The rails are the extensible half of the hub: LEFT holds Settings, RIGHT
-## is deliberately empty but built, so a future destination is one add_node()
-## call rather than a scene edit. Checked at every viewport because an empty
-## rail that is correctly anchored today is what makes that promise real.
+## Two rows of three, docked below the eye. Every destination is checked at
+## every viewport — reachable, big enough to tap, on screen, and clear of the
+## carved housing.
 ## The global styling holds across every screen that opts in.
 ##
 ## Three things are checked, all BEHAVIOURAL:
@@ -883,7 +902,7 @@ func _mount_styled(path: String, state_script: GDScript) -> Control:
 
 
 func _audit_hub_sidebars() -> void:
-	print("── hub sidebars ──")
+	print("── the hub nav dock ──")
 	var save: Node = root.get_node_or_null("Save")
 	if save != null:
 		save.call("mark_returned_from_trial")
@@ -901,53 +920,167 @@ func _audit_hub_sidebars() -> void:
 	for viewport: Vector2i in HUB_VIEWPORTS:
 		var screen: Control = await _mount_hub(viewport, state_script)
 		await create_timer(SETTLE_SEC).timeout
-		var left: Node = _descendant(screen, "LeftSidebar")
-		var right: Node = _descendant(screen, "RightSidebar")
+		var dock: Control = _descendant(screen, "NavDock") as Control
+		var primary: Node = _descendant(screen, "PrimaryRail")
+		var secondary: Node = _descendant(screen, "SecondaryRail")
 		var eye: Control = _descendant(screen, "CoreEye") as Control
-		var found: bool = left != null and right != null and eye != null
-		_ok("%dx%d: both rails exist" % [viewport.x, viewport.y], found)
+		var found: bool = (dock != null and primary != null
+			and secondary != null and eye != null)
+		_ok("%dx%d: the nav dock and both rows exist"
+			% [viewport.x, viewport.y], found)
 		if not found:
 			screen.free()
 			await process_frame
 			continue
 
-		# The right rail is EMPTY on purpose. Asserting it stays anchored and
-		# sized is what proves the extension point is real rather than
-		# aspirational.
-		_ok("%dx%d: the right rail is reserved and anchored"
+		# EVERY DESTINATION IS PRESENT, AND ON THE ROW IT BELONGS TO.
+		#
+		# Existence of the rails says nothing; a rail whose add_node() threw
+		# on its first line is still an anchored, correctly sized, EMPTY
+		# container — that exact failure shipped once and the audit reported
+		# it green. Count the discs on each row.
+		var primary_count: int = _rail_routes(primary as Control).size()
+		var secondary_count: int = _rail_routes(secondary as Control).size()
+		_ok("%dx%d: row 1 carries three destinations"
+			% [viewport.x, viewport.y], primary_count == 3,
+			"%d found" % primary_count)
+		_ok("%dx%d: row 2 carries three destinations"
+			% [viewport.x, viewport.y], secondary_count == 3,
+			"%d found" % secondary_count)
+
+		# THE ROWS MUST STACK, NOT OVERLAP. A VBox guarantees it today, but
+		# the whole dock is one scene edit away from being two free-floating
+		# bands again, which is the arrangement this replaced.
+		var row_a: Rect2 = (primary as Control).get_global_rect()
+		var row_b: Rect2 = (secondary as Control).get_global_rect()
+		_ok("%dx%d: row 2 sits below row 1" % [viewport.x, viewport.y],
+			row_b.position.y >= row_a.position.y + row_a.size.y
+				- OVERFLOW_TOLERANCE,
+			"row1 y %.0f..%.0f vs row2 y %.0f" % [
+				row_a.position.y, row_a.position.y + row_a.size.y,
+				row_b.position.y])
+
+		# THE GATE. A first-run player is promised exactly one affordance —
+		# the hint reads "Tap the Iris to begin your first trial" — so the
+		# whole dock must be absent until they come back from that trial.
+		#
+		# DRIVEN THROUGH Save, NOT THROUGH THE INJECTED STATE. _setup() calls
+		# _state.set_nav_unlocked(Save.has_returned_from_trial()) and thereby
+		# overwrites whatever configure() passed in, so a _mount_hub(false)
+		# would have come up UNLOCKED and this check would have passed against
+		# the very leak it is written to catch.
+		#
+		# Asserted at every viewport, because the dock is anchored to the
+		# bottom edge and a gate that leaks only on a short screen is the same
+		# defect.
+		# Save's presence is ASSERTED, not tested. Wrapping the gate check in
+		# `if save != null:` makes a missing autoload look like a pass, which
+		# is the failure mode this whole audit exists to avoid.
+		_ok("%dx%d: the Save autoload is available to drive the gate"
+			% [viewport.x, viewport.y], save != null)
+		save.call("set_v", "meta", "returned_from_trial", false)
+		var locked_hub: Control = await _mount_hub(viewport, state_script, false)
+		await create_timer(SETTLE_SEC).timeout
+		var locked_dock: Control = _descendant(locked_hub, "NavDock") as Control
+		_ok("%dx%d: the nav dock is hidden before the first trial"
 			% [viewport.x, viewport.y],
-			(right as Control).size.x > 1.0 and (right as Control).size.y > 1.0,
-			str((right as Control).size))
-
-		var settings: Button = _descendant(screen, "Orbit_settings") as Button
-		_ok("%dx%d: the settings node exists" % [viewport.x, viewport.y],
-			settings != null)
-		if settings == null:
-			screen.free()
-			await process_frame
-			continue
-
-		var rect: Rect2 = settings.get_global_rect()
-		_ok("%dx%d: settings meets the touch minimum" % [viewport.x, viewport.y],
-			rect.size.x >= Palette.MIN_TOUCH_TARGET
-			and rect.size.y >= Palette.MIN_TOUCH_TARGET,
-			str(rect.size))
-		_ok("%dx%d: settings stays on screen" % [viewport.x, viewport.y],
-			rect.position.x >= -OVERFLOW_TOLERANCE
-			and rect.position.y >= -OVERFLOW_TOLERANCE
-			and rect.position.x + rect.size.x <= float(viewport.x) + OVERFLOW_TOLERANCE
-			and rect.position.y + rect.size.y <= float(viewport.y) + OVERFLOW_TOLERANCE,
-			str(rect))
-
-		# The rail must not sit on top of the eye. A node overlapping the
-		# hero assembly is both ugly and a tap-target conflict.
-		if eye.is_visible_in_tree():
-			_ok("%dx%d: settings clears the eye" % [viewport.x, viewport.y],
-				rect.position.x + rect.size.x <= eye.global_position.x + OVERFLOW_TOLERANCE,
-				"node right %.0f vs eye left %.0f" % [
-					rect.position.x + rect.size.x, eye.global_position.x])
-		screen.free()
+			locked_dock != null and not locked_dock.is_visible_in_tree())
+		locked_hub.free()
 		await process_frame
+		save.call("mark_returned_from_trial")
+
+		# EVERY node on the dock, not just Settings. Checking one entry and
+		# generalising is how "Wardrobe" and "Progress" ended up printed over
+		# the carved frame while the audit stayed green — Settings happened to
+		# be the one node that cleared it.
+		var housing: Control = _descendant(screen, "HeroHousing") as Control
+		var routes: Array[String] = _rail_routes(primary as Control)
+		routes.append_array(_rail_routes(secondary as Control))
+		_ok("%dx%d: the settings node exists" % [viewport.x, viewport.y],
+			routes.has("settings"), str(routes))
+
+		for route: String in routes:
+			var disc: Button = _descendant(screen, "Orbit_%s" % route) as Button
+			if disc == null:
+				_ok("%dx%d: '%s' resolves to a button"
+					% [viewport.x, viewport.y, route], false)
+				continue
+			var rect: Rect2 = disc.get_global_rect()
+			_ok("%dx%d: '%s' meets the touch minimum"
+				% [viewport.x, viewport.y, route],
+				rect.size.x >= Palette.MIN_TOUCH_TARGET
+				and rect.size.y >= Palette.MIN_TOUCH_TARGET,
+				str(rect.size))
+			_ok("%dx%d: '%s' stays on screen" % [viewport.x, viewport.y, route],
+				rect.position.x >= -OVERFLOW_TOLERANCE
+				and rect.position.y >= -OVERFLOW_TOLERANCE
+				and rect.position.x + rect.size.x
+					<= float(viewport.x) + OVERFLOW_TOLERANCE
+				and rect.position.y + rect.size.y
+					<= float(viewport.y) + OVERFLOW_TOLERANCE,
+				str(rect))
+
+			# CLEARANCE IS MEASURED AGAINST THE HERO HOUSING, NOT %CoreEye.
+			#
+			# The reported defect was "wardrobe and progress in the eye", and
+			# %CoreEye is only the 500px eyeball — the carved frame around it
+			# is a separate TextureRect spanning HOUSING_SPAN (1.95x) and
+			# reaching HOUSING_OUTER (0.848) of its own half-span. At 500px
+			# that is a 975px assembly with visible metal out to 413px from
+			# centre, while the eyeball edge is at 250px. A node clearing
+			# %CoreEye by 100px is still sitting on bronze.
+			#
+			# Fall back to the eyeball only when the housing art is absent.
+			var blocker: Rect2 = _hero_extent(eye, housing)
+			if eye.is_visible_in_tree():
+				_ok("%dx%d: '%s' clears the hero frame"
+					% [viewport.x, viewport.y, route],
+					rect.position.y >= blocker.position.y + blocker.size.y
+						- OVERFLOW_TOLERANCE
+					or rect.position.y + rect.size.y
+						<= blocker.position.y + OVERFLOW_TOLERANCE,
+					"node y %.0f..%.0f vs frame y %.0f..%.0f" % [
+						rect.position.y, rect.position.y + rect.size.y,
+						blocker.position.y,
+						blocker.position.y + blocker.size.y])
+
+
+## The route names actually mounted on a rail, read from the live scene.
+##
+## HubSidebar keeps a private `_nodes` array, but reading it would trust the
+## rail's own bookkeeping. Walking the children instead measures what the
+## engine really laid out, which is the thing under test: an add_node() that
+## threw before add_child() would still leave `_nodes` looking correct.
+func _rail_routes(rail: Control) -> Array[String]:
+	var found: Array[String] = []
+	if rail == null:
+		return found
+	for wrapper: Node in rail.get_children():
+		for child: Node in wrapper.get_children():
+			if child is Button and str(child.name).begins_with("Orbit_"):
+				found.append(str(child.name).substr("Orbit_".length()))
+	return found
+
+
+## The rect the hero assembly visually occupies: the carved frame if it is
+## mounted, otherwise the bare eyeball.
+##
+## See the clearance check for why %CoreEye alone is the wrong yardstick.
+func _hero_extent(eye: Control, housing: Control) -> Rect2:
+	if housing != null and housing.is_visible_in_tree():
+		var span: Vector2 = housing.size
+		var visible_half: Vector2 = span * 0.5 * HOUSING_OUTER
+		var centre: Vector2 = housing.global_position + span * 0.5
+		return Rect2(centre - visible_half, visible_half * 2.0)
+	if eye == null:
+		return Rect2()
+	return eye.get_global_rect()
+
+
+## Fraction of the hero housing's half-span where its outer metal edge lands.
+## Mirrors IrisView.HOUSING_OUTER; the audit cannot import the class because a
+## --script MainLoop resolves autoloads and class_names differently.
+const HOUSING_OUTER: float = 0.848
 
 
 ## Mount the hub with an explicit IrisState. See _audit_hub_sidebars().
@@ -1543,3 +1676,46 @@ func _audit_visible_on_device() -> void:
 
 		screen.free()
 		await process_frame
+
+
+# ═════════════════════════════════════════════════════════════════════════
+# THE HUB MUST REACH EVERY TRIAL
+# ═════════════════════════════════════════════════════════════════════════
+## THE BUG THIS CATCHES: the hub navigated to "trial" with no trial_id, so
+## TrialController fell back to its hardcoded "false_witness" default. Three
+## fully-implemented, weighted, tested modes — sequence_recall,
+## cognitive_conflict and facet_cascade — were unreachable in the shipped
+## game. Reported as "there only seems to be one trial".
+##
+## TrialRegistry.pick_weighted() existed the whole time and was never called,
+## which is why no source-scanning check found it: everything was present and
+## correct, and nothing joined it up.
+func _audit_trial_variety() -> void:
+	print("── the hub reaches every selectable trial ──")
+
+	var registry: GDScript = ResourceLoader.load(
+		"res://data/trial_registry.gd", "GDScript",
+		ResourceLoader.CACHE_MODE_IGNORE) as GDScript
+	_ok("the trial registry is readable", registry != null)
+	var selectable: Array = []
+	if registry != null:
+		selectable = registry.call("selectable_ids")
+	_ok("more than one trial is selectable", selectable.size() > 1,
+		"%d selectable" % selectable.size())
+
+	# The hub must ASK the registry. Passing no trial_id is the defect, and it
+	# is invisible unless you look at what the payload actually carries.
+	var hub_src: String = FileAccess.get_file_as_string(
+		"res://nodes/hub_portal_controller.gd")
+	_ok("the hub chooses a trial rather than defaulting",
+		hub_src.contains("pick_weighted"),
+		"no trial_id in the payload means TrialController's fallback wins")
+
+	# Behavioural: sample the picker and prove it returns variety, not one id.
+	var seen: Dictionary = {}
+	if registry != null:
+		for _i: int in range(200):
+			seen[str(registry.call("pick_weighted"))] = true
+	_ok("the picker returns every selectable trial",
+		seen.size() == selectable.size(),
+		"%d of %d ids ever chosen" % [seen.size(), selectable.size()])

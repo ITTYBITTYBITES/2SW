@@ -43,11 +43,24 @@ func _ready() -> void:
 	# set_anchors_and_offsets_preset() writes the offsets too, which resolves
 	# to a real rect on the next sort, and the explicit size below covers the
 	# current frame so the very first _draw() is already correct.
+	# THE WARNING THIS SILENCES:
+	#   "Nodes with non-equal opposite anchors will have their size overridden
+	#    after _ready()"
+	#
+	# PRESET_FULL_RECT gives anchor_top 0 / anchor_bottom 1 — non-equal
+	# opposite anchors — so the engine OWNS this node's size and recomputes it
+	# from the anchors on the next layout pass. Writing `size` here is
+	# therefore both discarded and warned about; it was only ever a
+	# first-frame patch for a rect the container had not sorted yet.
+	#
+	# set_deferred() is the documented remedy: the write lands after the
+	# layout pass instead of being thrown away by it, so the first _draw()
+	# still has a real rect and the Debugger tab stays quiet.
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var host: Control = get_parent() as Control
 	if host != null:
-		size = host.size
-		position = Vector2.ZERO
+		set_deferred("size", host.size)
+		set_deferred("position", Vector2.ZERO)
 	# The overlay swallows input while it is up: a tap meant for "Begin" must
 	# never fall through to a glyph underneath it.
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -72,8 +85,11 @@ func present(trial_id: String) -> void:
 	column.anchor_bottom = 1.0
 	column.offset_left = Palette.SPACE_HUGE
 	column.offset_right = -Palette.SPACE_HUGE
-	column.offset_top = 0.0
-	column.offset_bottom = 0.0
+	# Match the plate's own vertical extent (52% of the screen, centred) so the
+	# text sits in the MIDDLE of the carved panel rather than drifting toward
+	# its top edge, which is where a full-height column put it.
+	column.offset_top = size.y * 0.24
+	column.offset_bottom = -size.y * 0.24
 	column.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	column.grow_vertical = Control.GROW_DIRECTION_BOTH
 	column.alignment = BoxContainer.ALIGNMENT_CENTER

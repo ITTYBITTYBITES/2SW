@@ -1,0 +1,194 @@
+{
+  "sample_rate": 44100,
+  "highpass_hz": 120.0,
+  "sub_bass_ceiling_hz": 120.0,
+  "total_bytes": 904904,
+  "layers": [
+    {
+      "name": "pad_low",
+      "file": "pad_low.ogg",
+      "kind": "resonant_pad",
+      "root_hz": 220.0,
+      "note": "A3",
+      "seconds": 12.0,
+      "seed": 1001,
+      "tags": [
+        "bed",
+        "warm"
+      ],
+      "sub_bass_energy": 0.0,
+      "spectral_centroid_hz": 666.7,
+      "bytes": 39243,
+      "sha256": "5d93d645e9efd2ad"
+    },
+    {
+      "name": "pad_mid",
+      "file": "pad_mid.ogg",
+      "kind": "resonant_pad",
+      "root_hz": 293.66,
+      "note": "D4",
+      "seconds": 12.0,
+      "seed": 1002,
+      "tags": [
+        "bed",
+        "warm"
+      ],
+      "sub_bass_energy": 0.0,
+      "spectral_centroid_hz": 791.6,
+      "bytes": 47261,
+      "sha256": "5ba7c7c5233682a5"
+    },
+    {
+      "name": "pad_high",
+      "file": "pad_high.ogg",
+      "kind": "resonant_pad",
+      "root_hz": 440.0,
+      "note": "A4",
+      "seconds": 12.0,
+      "seed": 1003,
+      "tags": [
+        "bed",
+        "bright"
+      ],
+      "sub_bass_energy": 0.0,
+      "spectral_centroid_hz": 1206.1,
+      "bytes": 57624,
+      "sha256": "25a2134b60485cd7"
+    },
+    {
+      "name": "glass_low",
+      "file": "glass_low.ogg",
+      "kind": "bowed_glass",
+      "root_hz": 261.63,
+      "note": "C4",
+      "seconds": 14.0,
+      "seed": 2001,
+      "tags": [
+        "voice",
+        "sustain"
+      ],
+      "sub_bass_energy": 1e-05,
+      "spectral_centroid_hz": 931.7,
+      "bytes": 118805,
+      "sha256": "2522a1d34e52ae1f"
+    },
+    {
+      "name": "glass_mid",
+      "file": "glass_mid.ogg",
+      "kind": "bowed_glass",
+      "root_hz": 349.23,
+      "note": "F4",
+      "seconds": 14.0,
+      "seed": 2002,
+      "tags": [
+        "voice",
+        "sustain"
+      ],
+      "sub_bass_energy": 0.0,
+      "spectral_centroid_hz": 1192.7,
+      "bytes": 123871,
+      "sha256": "aed1fe1147dbe132"
+    },
+    {
+      "name": "glass_high",
+      "file": "glass_high.ogg",
+      "kind": "bowed_glass",
+      "root_hz": 523.25,
+      "note": "C5",
+      "seconds": 14.0,
+      "seed": 2003,
+      "tags": [
+        "voice",
+        "sustain",
+        "bright"
+      ],
+      "sub_bass_energy": 0.0,
+      "spectral_centroid_hz": 1578.2,
+      "bytes": 124915,
+      "sha256": "0e497c23aef626a5"
+    },
+    {
+      "name": "chime_soft",
+      "file": "chime_soft.ogg",
+      "kind": "struck_chime",
+      "root_hz": 392.0,
+      "note": "G4",
+      "seconds": 10.0,
+      "seed": 3001,
+      "tags": [
+        "accent"
+      ],
+      "sub_bass_energy": 0.0,
+      "spectral_centroid_hz": 3451.4,
+      "bytes": 15109,
+      "sha256": "889d49f9fe3d5d25"
+    },
+    {
+      "name": "chime_bright",
+      "file": "chime_bright.ogg",
+      "kind": "struck_chime",
+      "root_hz": 587.33,
+      "note": "D5",
+      "seconds": 10.0,
+      "seed": 3002,
+      "tags": [
+        "accent",
+        "bright"
+      ],
+      "sub_bass_energy": 0.0,
+      "spectral_centroid_hz": 3987.5,
+      "bytes": 13332,
+      "sha256": "21feb00893c7907b"
+    },
+    {
+      "name": "air_calm",
+      "file": "air_calm.ogg",
+      "kind": "air_texture",
+      "root_hz": 300.0,
+      "note": "",
+      "seconds": 16.0,
+      "seed": 4001,
+      "tags": [
+        "texture"
+      ],
+      "sub_bass_energy": 0.00265,
+      "spectral_centroid_hz": 2635.8,
+      "bytes": 148263,
+      "sha256": "e01871272bddc96a"
+    },
+    {
+      "name": "air_tense",
+      "file": "air_tense.ogg",
+      "kind": "air_texture",
+      "root_hz": 520.0,
+      "note": "",
+      "seconds": 16.0,
+      "seed": 4002,
+      "tags": [
+        "texture",
+        "bright"
+      ],
+      "sub_bass_energy": 7e-05,
+      "spectral_centroid_hz": 3440.7,
+      "bytes": 152248,
+      "sha256": "31cfc5ff839d87ab"
+    },
+    {
+      "name": "shimmer_fine",
+      "file": "shimmer_fine.ogg",
+      "kind": "shimmer",
+      "root_hz": 0.0,
+      "note": "",
+      "seconds": 12.0,
+      "seed": 5001,
+      "tags": [
+        "texture",
+        "bright"
+      ],
+      "sub_bass_energy": 0.0,
+      "spectral_centroid_hz": 4300.2,
+      "bytes": 64233,
+      "sha256": "06d2c537ec6d4dc5"
+    }
+  ]
+}

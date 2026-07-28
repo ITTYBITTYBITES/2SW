@@ -1,14 +1,18 @@
-extends VBoxContainer
+extends BoxContainer
 class_name HubSidebar
-## HubSidebar — a vertical rail of OrbitNodes down one edge of the hub.
+## HubSidebar — a rail of OrbitNodes along one edge of the hub.
+##
+## A PLAIN BoxContainer, NOT a VBoxContainer. VBox/HBox hardcode `vertical`
+## and silently ignore writes to it, so a rail that needs to run horizontally
+## could not. The hub sets `vertical` per rail.
 ##
 ## The extensibility requirement, in one place. Adding a destination is:
 ##
 ##     sidebar.add_node("progress", "Progress")
 ##
 ## No offsets to recompute, no anchors to re-derive, no scene edit. The rail
-## is a VBoxContainer pinned to its edge and vertically centred, so entries
-## stack and re-centre themselves as the list grows from one to four.
+## is a container pinned to its edge and centred along its own axis, so
+## entries stack and re-centre themselves as the list grows.
 ##
 ## WHY A CONTAINER AND NOT ANCHORED CHILDREN
 ## Every layout bug in this project's history came from hand-computed
@@ -23,7 +27,7 @@ class_name HubSidebar
 ## would collide with the header or the hint, and a caller adding one should
 ## be told at once rather than discovering it on a device.
 
-## Beyond this the rail overflows the vertical space the hub has.
+## Beyond this the rail overflows the space the hub has for it.
 const MAX_NODES: int = 4
 
 ## Gap between stacked nodes.
@@ -38,6 +42,20 @@ var _nodes: Array[OrbitNode] = []
 
 func _ready() -> void:
 	alignment = BoxContainer.ALIGNMENT_CENTER
+	# THE SCENE'S AXIS IS NOT OVERWRITTEN HERE.
+	#
+	# This used to force `vertical = true` and rely on the hub calling
+	# set_axis(false) later. It does — but only from _layout(), which runs
+	# AFTER the first container sort. For that first sort both dock rows
+	# reported the minimum height of three STACKED nodes, so the dock's
+	# minimum came out at 672px against the 272px its anchors reserve, and a
+	# container always wins that argument: the dock grew to y 1576..2248 on a
+	# 1920px screen and hung 328px off the bottom edge. Caught by the layout
+	# flow's overflow bound at all six viewports.
+	#
+	# BoxContainer already defaults to horizontal, and hub_portal.tscn states
+	# `vertical = false` explicitly. Honouring what the scene authored is both
+	# correct and one less thing to keep in sync.
 	add_theme_constant_override("separation", int(NODE_SPACING))
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
@@ -92,6 +110,61 @@ func restyle() -> void:
 				_style_caption(grandchild as Label)
 	for node: OrbitNode in _nodes:
 		node.queue_redraw()
+
+
+## Run the rail vertically (a side column) or horizontally (a top/bottom band).
+##
+## `vertical` is why this extends a plain BoxContainer: VBoxContainer and
+## HBoxContainer hardcode it and silently discard writes, so a rail built as a
+## VBox could never be flipped.
+## `run_vertical`, not `is_vertical`: BoxContainer already declares an
+## is_vertical() method, and a parameter of that name shadows it — a warning
+## the sweep treats as an error, and a genuine trap for anyone who later calls
+## is_vertical() inside this function and silently gets the argument.
+func set_axis(run_vertical: bool) -> void:
+	vertical = run_vertical
+	# A horizontal band spans the screen, so its nodes should SPREAD across it
+	# rather than huddle in the middle of 1032px of empty rail. Each node is
+	# told to expand; the container then divides the width evenly between
+	# them. A vertical column keeps its shrink-to-fit centring.
+	for node: OrbitNode in _nodes:
+		var wrapper: Control = node.get_parent() as Control
+		if wrapper == null:
+			continue
+		wrapper.size_flags_horizontal = (Control.SIZE_SHRINK_CENTER
+			if run_vertical else Control.SIZE_EXPAND_FILL)
+
+
+## Shrink the gaps when the rail cannot fit its nodes at full spacing.
+##
+## Measures along whichever axis the rail runs on, so it serves a vertical
+## side rail and a horizontal top/bottom rail identically.
+##
+## THE BUG THIS FIXES: at 640x360 the right rail carries three nodes needing
+## ~328px of a ~304px usable column, so the third — Settings — was laid out at
+## y=458 on a 360px-tall screen: entirely off the bottom, unreachable. Caught
+## by the polish audit's "stays on screen" bound.
+##
+## Compressing the separation is the right lever: the nodes themselves must
+## stay at least MIN_TOUCH_TARGET, but the AIR between them is negotiable.
+## Called from the hub's _layout(), so it re-runs on every resize.
+func fit_to_extent(available: float) -> void:
+	if _nodes.is_empty():
+		return
+	var count: int = _nodes.size()
+	var used: float = 0.0
+	for node: OrbitNode in _nodes:
+		var minimum: Vector2 = node.get_combined_minimum_size()
+		# Measure along the axis the rail actually runs on.
+		used += maxf(minimum.y if vertical else minimum.x, OrbitNode.DIAMETER)
+
+	var gaps: int = maxi(count - 1, 1)
+	var spare: float = available - used
+	var spacing: float = NODE_SPACING
+	if spare < NODE_SPACING * float(gaps):
+		# Never negative: overlapping nodes would be worse than a tight rail.
+		spacing = clampf(spare / float(gaps), 0.0, NODE_SPACING)
+	add_theme_constant_override("separation", int(spacing))
 
 
 func node_count() -> int:

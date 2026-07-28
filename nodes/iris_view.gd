@@ -77,6 +77,20 @@ const HOUSING_SPAN: float = 1.95
 const HOUSING_APERTURE: float = 0.531
 const HOUSING_OUTER: float = 0.848
 
+## Pupil radius bounds, as a fraction of the eye's HALF short side.
+##
+## MUST MATCH `pupil_min` / `pupil_max` in iris_procedural.gdshader, and are
+## pushed to it on every state apply so the two cannot drift.
+##
+## They are declared here rather than left as shader-only defaults because
+## GDScript cannot read a uniform's declared default at all: Shader has no
+## get_default_parameter(), and RenderingServer.shader_get_parameter_default()
+## returns null for an unassigned uniform. A test asking "does the vision disc
+## fit inside the pupil?" therefore measured a pupil of ZERO pixels and could
+## never fail — which is how a glyph four times too big shipped.
+const PUPIL_MIN: float = 0.20
+const PUPIL_MAX: float = 0.46
+
 ## Autonomous life tuning. These are behaviour constants, not visual tokens.
 const BLINK_INTERVAL_MIN: float = 2.6
 const BLINK_INTERVAL_MAX: float = 5.8
@@ -484,6 +498,13 @@ func _process(delta: float) -> void:
 		clampf(delta * GAZE_EASE_RATE, 0.0, 1.0))
 	_material.set_shader_parameter("gaze_vector", _gaze_current)
 
+	# The vision disc rides WITH the pupil. The shader translates the iris by
+	# the gaze every frame, so a disc positioned only on resize is left behind
+	# the moment the eye looks anywhere — which is exactly the state it is
+	# shown in, since it only ever appears during a drag.
+	if _vision != null and _vision.reveal() > 0.0:
+		_size_vision()
+
 	# ── Breathing dilation ──────────────────────────────────────────────
 	var dilation: float = 0.5
 	if _state != null:
@@ -495,6 +516,10 @@ func _process(delta: float) -> void:
 		dilation += sin(_breath_phase) * BREATH_AMPLITUDE
 
 	_material.set_shader_parameter("pupil_dilation", clampf(dilation, 0.0, 1.0))
+	# Pushed explicitly, every frame, so the shader's pupil and the CPU-side
+	# constants a test measures against can never disagree.
+	_material.set_shader_parameter("pupil_min", PUPIL_MIN)
+	_material.set_shader_parameter("pupil_max", PUPIL_MAX)
 	_material.set_shader_parameter("blink", _blink_value)
 
 
@@ -700,13 +725,57 @@ func _ensure_vision() -> void:
 	_size_vision()
 
 
+## Fraction of the gaze vector the pupil translates by.
+##
+## MUST MATCH `vec2 gaze = gaze_vector * 0.22;` in iris_procedural.gdshader.
+## The shader moves the whole iris/pupil group by this much; the vision disc
+## is a Control pinned in CPU space and knows nothing about it, so without
+## the same term the glyph detaches from the pupil it is supposed to sit in.
+##
+## Measured on a GPU capture mid-drag: the pupil centroid had travelled to
+## (541, 905) while the disc stayed at the view centre (540, 864) — a 41px
+## separation on a 500px eye, with the pupil visibly sliding out from under
+## its own symbol.
+const GAZE_TRANSLATE: float = 0.22
+
+
 func _size_vision() -> void:
 	# Called on every resize, including before the first hover has created
 	# the renderer. Absent is expected, not a failure.
 	if _vision != null:
 		var diameter: float = _side * VisionGlyph.DISC_FRACTION
 		_vision.size = Vector2(diameter, diameter)
-		_vision.position = size * 0.5 - Vector2(diameter, diameter) * 0.5
+		_vision.position = _pupil_centre() - Vector2(diameter, diameter) * 0.5
+
+
+## The pupil's CURRENT rendered diameter in pixels.
+##
+## Reads the live `pupil_dilation` the shader is actually using — including
+## the breathing term added in _process() — rather than the state's target, so
+## a caller sizing something to the pupil tracks what is on screen.
+func pupil_diameter() -> float:
+	var dilation: float = 0.5
+	if _material != null:
+		var live: Variant = _material.get_shader_parameter("pupil_dilation")
+		if live != null:
+			dilation = float(live)
+	return lerpf(PUPIL_MIN, PUPIL_MAX, clampf(dilation, 0.0, 1.0)) * _side
+
+
+## Where the pupil actually is, in this control's local space.
+##
+## SIGN: the shader computes `iris_flat = p - gaze` and draws the pupil where
+## `iris_flat ≈ 0`, i.e. at `p ≈ +gaze`. The pupil therefore moves TOWARD the
+## gaze direction, so this ADDS. Subtracting sent the disc the opposite way —
+## on a north drag the pupil rose while the glyph sank, doubling the error to
+## ~110px and putting the symbol on the lower iris. Visible immediately in a
+## GPU capture, and invisible to the first version of the check, which
+## recomputed this same expression and so agreed with the bug.
+##
+## `p` is normalised by the SHORT SIDE and spans [-1, 1], so one unit of gaze
+## is a half-side in pixels.
+func _pupil_centre() -> Vector2:
+	return size * 0.5 + _gaze_current * (_side * 0.5 * GAZE_TRANSLATE)
 
 
 func set_nav_enabled(enabled: bool) -> void:

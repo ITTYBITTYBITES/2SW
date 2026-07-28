@@ -48,11 +48,11 @@ uniform vec3 lid_color       = vec3(0.024, 0.031, 0.055);
 uniform vec3 glint_color     = vec3(1.0, 1.0, 1.0);
 
 // ── Geometry ───────────────────────────────────────────────────────────
-uniform float iris_radius : hint_range(0.1, 1.0) = 0.72;
+uniform float iris_radius : hint_range(0.1, 1.0) = 0.92;
 uniform float pupil_min : hint_range(0.05, 0.5) = 0.20;
 uniform float pupil_max : hint_range(0.1, 0.8) = 0.46;
 uniform float eye_width : hint_range(0.5, 2.0) = 1.32;
-uniform float eye_height : hint_range(0.3, 1.5) = 0.98;
+uniform float eye_height : hint_range(0.3, 1.5) = 1.04;
 
 // ── Optical depth (Phase 3) ────────────────────────────────────────────
 // How strongly the cornea refracts what is under it. 0 renders the iris
@@ -453,7 +453,7 @@ void fragment() {
 	// Modelled by scaling the sample distance anisotropically before the
 	// Gaussian, then adding a second lobe offset along the stretch axis so
 	// the highlight has internal structure instead of one smooth falloff.
-	vec2 glint_pos = vec2(-0.20, 0.24) - gaze * 0.45;
+	vec2 glint_pos = vec2(-0.34, 0.38) - gaze * 0.45;
 	vec2 gd = p - glint_pos;
 	// Curvature rises with distance from the corneal axis: the further out,
 	// the more the reflection smears horizontally.
@@ -468,9 +468,15 @@ void fragment() {
 	vec2 gd_b = (p - glint_pos - vec2(0.055, -0.030));
 	float glint_sub = exp(-pow(length(vec2(gd_b.x / curve_stretch, gd_b.y * 1.3)) * 15.0, 2.0));
 
-	col += glint_color * glint_core * 0.82;
-	col += glint_color * glint_halo * 0.14;
-	col += glint_color * glint_sub * 0.34;
+	// TONED DOWN, AND MOVED OFF THE PUPIL.
+	//
+	// At 0.82 the core was a near-white blob sitting over the pupil, which
+	// reported as "the eye has a reflection, the white looks like a light".
+	// A real catchlight is a small bright accent on the WET DOME, not a lamp
+	// in the middle of the iris. Halved, and the secondary lobe with it.
+	col += glint_color * glint_core * 0.38;
+	col += glint_color * glint_halo * 0.09;
+	col += glint_color * glint_sub * 0.15;
 
 	// Secondary, softer and lower — a second light source reads as a room.
 	// Also stretched, but along the opposing axis so the two do not look
@@ -478,7 +484,7 @@ void fragment() {
 	vec2 glint2_pos = vec2(0.26, -0.20) - gaze * 0.30;
 	vec2 g2d = p - glint2_pos;
 	float glint2 = exp(-pow(length(vec2(g2d.x * 1.35, g2d.y / 1.15)) * 6.4, 2.0));
-	col += glint_color * glint2 * 0.17;
+	col += glint_color * glint2 * 0.10;
 
 	// Refractive rim: light bending through the corneal edge.
 	float rim = smoothstep(iris_radius * 0.86, iris_radius * 1.04, r)
