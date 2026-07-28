@@ -1,5 +1,10 @@
-; Two Second Witness — v2 base
-; Engine configuration. Godot 4.6, mobile.
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
 
 config_version=5
 
@@ -9,51 +14,15 @@ config/name="Two Second Witness"
 config/description="A minimalist cognitive trainer. Feed the Iris."
 config/version="2.0.0"
 run/main_scene="res://app/app.tscn"
-config/features=PackedStringArray("4.6", "Mobile")
-config/icon="res://art/branding/icon_512.png"
-
-; ── CRITICAL ──────────────────────────────────────────────────────────────
-; Default is TRUE, which makes the Android back button quit the app from any
-; screen. That is the v1 "back exits the game" bug. We take full control and
-; route every back press through Router.back().
 config/quit_on_go_back=false
-; We also handle window-close ourselves so a back press at the root can show
-; a confirm instead of killing the process mid-write.
+config/features=PackedStringArray("4.6", "Mobile")
 run/flush_stdout_on_print=true
-
-; ── BOOT SPLASH ───────────────────────────────────────────────────────────
-; The engine draws its own logo before the first frame of the game. Left at
-; the defaults it showed the Godot mark on a (0.14, 0.14, 0.14) grey, then
-; cut to our (0.024, 0.031, 0.055) background — a logo we did not choose
-; followed by a grey flash, in front of a splash sequence whose entire job is
-; to be the first thing the player sees.
-;
-; show_image=false removes the mark. We cannot replace it with our own: a
-; boot splash MUST be a real image file, and this project is 100% procedural
-; (rule 9 / Rule F), so shipping a branding PNG to cover 200ms of boot would
-; break the constraint the whole renderer is built around.
-;
-; bg_color matches Palette.COLOR_BACKGROUND exactly, so the pre-engine window
-; is the same colour as the first frame and the transition is invisible.
-; Keep these two in sync — tests/check_architecture.py asserts it.
-boot_splash/show_image=false
 boot_splash/bg_color=Color(0.024, 0.031, 0.055, 1)
-boot_splash/minimum_display_time=0
+boot_splash/show_image=false
+config/icon="res://art/branding/icon_512.png"
 
 [autoload]
 
-; Order is dependency-driven, not convention-driven.
-;   Log     — no deps
-;   Cfg     — needs Log
-;   Bus     — no deps (pure signal hub, zero state)
-;   Save    — needs Log
-;   Palette — needs Save (reads a11y settings), Bus (broadcasts palette_changed)
-;   Router  — needs Log, Save, Bus; App binds its host container at runtime
-;   AudioManager — needs Save (volume), Bus (palette retunes the pad)
-;   HapticsManager — needs Save (haptics setting)
-;   AdManager — needs Cfg (unit ids), Save (daily cap), ProgressionEngine (day index)
-;   AudioDirector — LAST: needs Bus (subscribes) and AudioManager (dispatches to).
-;                   Policy layer only; it decides WHEN, AudioManager decides HOW.
 Log="*res://core/log.gd"
 Cfg="*res://core/cfg.gd"
 Bus="*res://core/bus.gd"
@@ -69,28 +38,21 @@ AudioDirector="*res://systems/audio_director.gd"
 
 window/size/viewport_width=1080
 window/size/viewport_height=1920
-window/handheld/orientation=1
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-window/energy_saving/keep_screen_on=true
+window/handheld/orientation=1
 
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true
 
+[physics]
+
+common/enable_pause_aware_picking=true
+
 [rendering]
 
 renderer/rendering_method="mobile"
-renderer/rendering_method.mobile="mobile"
 textures/vram_compression/import_etc2_astc=true
 anti_aliasing/quality/msaa_2d=1
 environment/defaults/default_clear_color=Color(0.024, 0.031, 0.055, 1)
-
-[physics]
-
-common/physics_ticks_per_second=60
-common/enable_pause_aware_picking=true
-
-[gui]
-
-theme/default_theme_scale=1.0
