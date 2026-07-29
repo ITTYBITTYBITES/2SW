@@ -54,12 +54,12 @@ mouse_filter = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 0
+size_flags_vertical = 3
 anchors_preset = 15
-anchor_right = 0.95
 anchor_left = 0.05
-anchor_bottom = 0.95
 anchor_top = 0.05
+anchor_right = 0.95
+anchor_bottom = 0.95
 
 [node name="CardBody" type="VBoxContainer" parent="Root/Scroll/CentreWrap/Card"]
 layout_mode = 2
@@ -71,8 +71,8 @@ layout_mode = 2
 mouse_filter = 2
 text = "Before we begin"
 horizontal_alignment = 1
-autowrap_mode = 3
-theme_override_font_sizes/font_size = 36
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 40
 
 [node name="BodyLabel" type="Label" parent="Root/Scroll/CentreWrap/Card/CardBody"]
 unique_name_in_owner = true
@@ -80,8 +80,9 @@ layout_mode = 2
 mouse_filter = 2
 text = ""
 horizontal_alignment = 1
-autowrap_mode = 3
-theme_override_font_sizes/font_size = 22
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 24
+size_flags_vertical = 3
 
 [node name="LinkRow" type="HBoxContainer" parent="Root/Scroll/CentreWrap/Card/CardBody"]
 layout_mode = 2
