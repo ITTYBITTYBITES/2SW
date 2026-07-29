@@ -1,5 +1,5 @@
 72322a848ab928aa5c89f0cb78209805
-::res://::1785323610
+::res://::1785328092
 AGENTS.md::TextFile::-1::1785323374::0::1::::<><><>0<>0<><>::
 build_config.cfg::TextFile::-1::1785323374::0::1::::<><><>0<>0<><>::
 build_config.example.cfg::TextFile::-1::1785323374::0::1::::<><><>0<>0<><>::
@@ -470,9 +470,9 @@ SKILL.md::TextFile::-1::1785323546::0::1::::<><><>0<>0<><>::
 SKILL.md::TextFile::-1::1785323546::0::1::::<><><>0<>0<><>::
 ::res://addons/admob/skills/godot-admob-troubleshoot/::1785323546
 SKILL.md::TextFile::-1::1785323546::0::1::::<><><>0<>0<><>::
-::res://app/::1785323408
+::res://app/::1785324072
 app.gd::GDScript::2520347795812200708::1785323374::0::1::::<>Control<><>0<>0<><>::
-app.tscn::PackedScene::6706435530841017064::1785323408::0::1::::<><><>0<>0<><>::res://app/app.gd
+app.tscn::PackedScene::6706435530841017064::1785327042::0::1::::<><><>0<>0<><>::res://app/app.gd
 ::res://art/::1785323374
 ::res://art/branding/::1785323506
 icon.svg::CompressedTexture2D::1808394656759285848::1785323374::1785323506::1::::<><><>0<>0<>958c370249936eff210b3d94cd010a21<>res://.godot/imported/icon.svg-c20eb6cbc7e224116d229bbd4051d9fc.ctex::
@@ -619,7 +619,7 @@ consent_controller.gd::GDScript::3670104614699963220::1785323374::0::1::::Consen
 cosmetic_mount.gd::GDScript::2651932058081079953::1785323374::0::1::::CosmeticMount<>RefCounted<><>0<>0<><>::
 cosmetic_renderer.gd::GDScript::2199589665172432320::1785323374::0::1::::CosmeticRenderer<>Control<><>0<>0<><>::
 daily_hub_controller.gd::GDScript::6036943576207826955::1785323374::0::1::::DailyHubController<>Screen<><>0<>0<><>::
-hub_portal_controller.gd::GDScript::2533828496091916467::1785323408::0::1::::HubPortalController<>Screen<><>0<>0<><>::
+hub_portal_controller.gd::GDScript::2533828496091916467::1785327679::0::1::::HubPortalController<>Screen<><>0<>0<><>::
 iris_view.gd::GDScript::1043601703351626838::1785323374::0::1::::IrisView<>Control<><>0<>0<><>::
 iris_view.tscn::PackedScene::6658368105800692612::1785323374::0::1::::<><><>0<>0<><>::res://nodes/iris_view.gd
 progress_view_controller.gd::GDScript::3189691640502658100::1785323374::0::1::::ProgressViewController<>Screen<><>0<>0<><>::
@@ -643,7 +643,7 @@ hub_preview.png::CompressedTexture2D::5971555257699945434::1785323408::178532350
 settings_preview.png::CompressedTexture2D::8219595983555392477::1785323408::1785323506::1::::<><><>0<>0<>6d9e16264fbb53d99c113bdcbd8ba1eb<>res://.godot/imported/settings_preview.png-65f2cea4579795e0275a78037c3eb107.ctex::
 ::res://scenes/::1785323374
 ::res://scenes/debug/::1785323374
-iris_inspector.gd::GDScript::8853085376515477477::1785323374::0::1::::<>Control<><>0<>0<><>::
+iris_inspector.gd::GDScript::8853085376515477477::1785327691::0::1::::<>Control<><>0<>0<><>::
 iris_inspector.tscn::PackedScene::-1::1785323374::0::1::::<><><>0<>0<><>::uid://c14ml5qtxjwto::::res://nodes/iris_view.tscn<>res://scenes/debug/iris_inspector.gd
 ::res://screens/::1785323409
 daily_hub.tscn::PackedScene::6658034151662420672::1785323374::0::1::::<><><>0<>0<><>::res://nodes/daily_hub_controller.gd<>res://nodes/iris_view.tscn
@@ -657,8 +657,8 @@ trial_results.tscn::PackedScene::6659035964472312388::1785323374::0::1::::<><><>
 wardrobe.tscn::PackedScene::6659188234567262532::1785323374::0::1::::<><><>0<>0<><>::res://nodes/wardrobe_controller.gd<>res://nodes/iris_view.tscn
 ::res://screens/chrono_pulse/::1785323374
 result_card.tscn::PackedScene::5010609126219279460::1785323374::0::1::::<><><>0<>0<><>::res://nodes/chrono_result_card.gd
-::res://screens/consent/::1785323374
-consent.tscn::PackedScene::6657998708314002360::1785323374::0::1::::<><><>0<>0<><>::res://nodes/consent_controller.gd
+::res://screens/consent/::1785324097
+consent.tscn::PackedScene::6657998708314002360::1785324097::0::1::::<><><>0<>0<><>::res://nodes/consent_controller.gd
 ::res://screens/splash/::1785323374
 splash.tscn::PackedScene::6658971833767304648::1785323374::0::1::::<><><>0<>0<><>::res://nodes/splash_controller.gd<>res://nodes/splash_visuals.gd<>res://ui/splash_bloom.gd<>res://ui/splash_plate.gd
 ::res://shaders/::1785323374
@@ -668,8 +668,8 @@ audio_director.gd::GDScript::514633002899876597::1785323374::0::1::::AudioDirect
 layer_engine.gd::GDScript::3544357889026185317::1785323374::0::1::::LayerEngineSystem<>Node<><>0<>0<><>::
 README.md::TextFile::-1::1785323374::0::1::::<><><>0<>0<><>::
 ::res://tests/::1785323374
-::res://theme/::1785323409
-default_theme.tres::Theme::-1::1785323409::0::1::::<><><>0<>0<><>::
+::res://theme/::1785324370
+default_theme.tres::Theme::-1::1785328049::0::1::::<><><>0<>0<><>::
 ::res://tools/::1785323375
 ads_haptics_flow.gd::GDScript::5419467169675562004::1785323374::0::1::::<>SceneTree<><>0<>0<><>::
 audio_director_flow.gd::GDScript::3012604875904336797::1785323374::0::1::::<>SceneTree<><>0<>0<><>::
@@ -711,7 +711,8 @@ pack_trend_science_signals.json::JSON::-1::1785323375::0::1::::<><><>0<>0<><>::
 pack_trend_screen_moments.json::JSON::-1::1785323375::0::1::::<><><>0<>0<><>::
 pack_trend_speedrun_relics.json::JSON::-1::1785323375::0::1::::<><><>0<>0<><>::
 pack_trend_sports_flashes.json::JSON::-1::1785323375::0::1::::<><><>0<>0<><>::
-::res://tools/trend_content_pipeline/scripts/::1785323375
+::res://tools/trend_content_pipeline/scripts/::1785326850
+::res://tools/trend_content_pipeline/scripts/__pycache__/::1785326850
 ::res://ui/::1785323375
 arcane_theme.gd::GDScript::2079969936259672021::1785323375::0::1::::ArcaneTheme<>RefCounted<><>0<>0<><>::
 atmosphere.gd::GDScript::4412223693685891812::1785323375::0::1::::Atmosphere<>Control<><>0<>0<><>::

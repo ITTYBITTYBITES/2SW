@@ -21,6 +21,11 @@ boot_splash/bg_color=Color(0.024, 0.031, 0.055, 1)
 boot_splash/show_image=false
 config/icon="res://art/branding/icon_512.png"
 
+[audio]
+
+driver/enable_audio_input=false
+default_bus_layout="res://default_bus_layout.tres"
+
 [autoload]
 
 Log="*res://core/log.gd"
@@ -49,6 +54,10 @@ window/handheld/orientation=1
 
 enabled=PackedStringArray("res://addons/admob/plugin.cfg")
 
+[gui]
+
+theme/custom="res://theme/default_theme.tres"
+
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true
@@ -67,13 +76,3 @@ renderer/rendering_method="mobile"
 textures/vram_compression/import_etc2_astc=true
 anti_aliasing/quality/msaa_2d=1
 environment/defaults/default_clear_color=Color(0.024, 0.031, 0.055, 1)
-
-[gui]
-
-theme/custom="res://theme/default_theme.tres"
-
-[audio]
-
-driver/mix_rate=44100
-driver/enable_audio_input=false
-default_bus_layout="res://default_bus_layout.tres"
