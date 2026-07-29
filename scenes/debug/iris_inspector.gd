@@ -24,13 +24,13 @@ func _update_shader(_value: float) -> void:
 		return
 
 	# We push values directly to the shader material
-	var mat = iris_view.get_node("%CoreEye").material as ShaderMaterial
+	var mat: ShaderMaterial = iris_view.get_node("%CoreEye").material as ShaderMaterial
 	if mat == null:
 		return
 
 	mat.set_shader_parameter("pupil_dilation", pupil_slider.value)
 	mat.set_shader_parameter("complexity_factor", fiber_slider.value)
-	mat.set_shader_parameter("limbal_color", Color(0.02, 0.05, 0.09) * (1.0 - limbal_slider.value * 0.6))
+	mat.set_shader_parameter("limbal_color", Palette.COLOR_PUPIL * (1.0 - limbal_slider.value * 0.6))
 	mat.set_shader_parameter("glow", specular_slider.value)
 	mat.set_shader_parameter("refraction_strength", parallax_slider.value)
 

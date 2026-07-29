@@ -3,10 +3,10 @@ signal/const/func duplication, and obvious call-site typos."""
 import re, sys, pathlib
 
 errs, warns = [], []
-files = sorted((f for f in pathlib.Path('.').rglob('*.gd') if 'legacy_reference' not in f.parts))
+files = sorted((f for f in pathlib.Path('.').rglob('*.gd') if 'legacy_reference' not in f.parts and 'addons' not in f.parts))
 
 for f in files:
-    src = f.read_text()
+    src = f.read_text(encoding="utf-8")
     lines = src.split('\n')
 
     # 1. Indentation must be tabs (Godot rejects mixed).

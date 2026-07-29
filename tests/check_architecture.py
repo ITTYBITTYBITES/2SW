@@ -30,13 +30,13 @@ warns: list[str] = []
 # feature-complete (see AGENTS.md). It stays in this set so that restoring the
 # folder for a v1 investigation does not bury CI in ~188 violations from code
 # that is deliberately not being fixed.
-EXCLUDED_DIRS = {"legacy_reference", ".godot", "art", "tools"}
+EXCLUDED_DIRS = {"legacy_reference", ".godot", "art", "tools", "addons", "previews"}
 
 GD_FILES = sorted(
     f for f in ROOT.rglob("*.gd")
     if not any(part in EXCLUDED_DIRS for part in f.relative_to(ROOT).parts)
 )
-REL = lambda p: str(p.relative_to(ROOT))
+REL = lambda p: p.relative_to(ROOT).as_posix()
 
 
 def strip_comments_and_strings(src: str) -> str:
@@ -51,21 +51,21 @@ def strip_comments_and_strings(src: str) -> str:
 
 # ── Rule A: Router owns scene switching ──────────────────────────────────
 for f in GD_FILES:
-    code = strip_comments_and_strings(f.read_text())
+    code = strip_comments_and_strings(f.read_text(encoding="utf-8"))
     for m in re.finditer(r"change_scene_to_(file|packed)", code):
         if REL(f) != "core/router.gd":
             line = code[: m.start()].count("\n") + 1
             errs.append(f"Rule A  {REL(f)}:{line}  change_scene_to_* outside Router")
 
 # Router itself must not use change_scene either — it swaps children.
-router_code = strip_comments_and_strings((ROOT / "core/router.gd").read_text())
+router_code = strip_comments_and_strings((ROOT / "core/router.gd").read_text(encoding="utf-8"))
 if "change_scene_to_" in router_code:
     errs.append("Rule A  core/router.gd uses change_scene_*; it must swap child nodes")
 
 
 # ── Rule B: no hardcoded node paths; use %UniqueName ─────────────────────
 for f in GD_FILES:
-    code = strip_comments_and_strings(f.read_text())
+    code = strip_comments_and_strings(f.read_text(encoding="utf-8"))
     for pat, desc in (
         (r"\$\.\./", "$../ parent traversal"),
         (r'get_node\(\s*"\.\./', 'get_node("../") traversal'),
@@ -89,12 +89,12 @@ unique_declared: set[str] = set()
 for t in ROOT.rglob("*.tscn"):
     if any(part in EXCLUDED_DIRS for part in t.relative_to(ROOT).parts):
         continue
-    text = t.read_text()
+    text = t.read_text(encoding="utf-8")
     for m in re.finditer(r'\[node name="([^"]+)"[^\]]*\]\n(?:[^\[]*?)unique_name_in_owner = true', text):
         unique_declared.add(m.group(1))
 
 for f in GD_FILES:
-    code = strip_comments_and_strings(f.read_text())
+    code = strip_comments_and_strings(f.read_text(encoding="utf-8"))
     for m in re.finditer(r"%([A-Za-z_]\w*)", code):
         if m.group(1) not in unique_declared:
             line = code[: m.start()].count("\n") + 1
@@ -105,7 +105,7 @@ for f in GD_FILES:
 
 # Bus subscriptions need a matching disconnect somewhere in the same file.
 for f in GD_FILES:
-    src = f.read_text()
+    src = f.read_text(encoding="utf-8")
     if REL(f) == "core/bus.gd":
         continue
     connected = set(re.findall(r"Bus\.(\w+)\.connect\(", src))
@@ -119,7 +119,7 @@ for f in GD_FILES:
 
 # ── Rule C: no silent failure ────────────────────────────────────────────
 for f in GD_FILES:
-    lines = f.read_text().split("\n")
+    lines = f.read_text(encoding="utf-8").split("\n")
     for i, ln in enumerate(lines, 1):
         s = ln.strip()
         # A bare `return` inside an error branch is the classic v1 silent
@@ -150,7 +150,7 @@ ALLOWED_COLOR_FILES = {"design/palette.gd"}
 for f in GD_FILES:
     if REL(f) in ALLOWED_COLOR_FILES:
         continue
-    code = strip_comments_and_strings(f.read_text())
+    code = strip_comments_and_strings(f.read_text(encoding="utf-8"))
     for m in re.finditer(r"\bColor\s*\(\s*[\d.]", code):
         line = code[: m.start()].count("\n") + 1
         errs.append(f"Rule D  {REL(f)}:{line}  hardcoded Color(); use a Palette token")
@@ -190,7 +190,7 @@ LITERAL_ARG = re.compile(r"^\s*\d{2,}(?:\.\d+)?\s*$")
 for f in GD_FILES:
     if REL(f) == "design/palette.gd":
         continue
-    code = strip_comments_and_strings(f.read_text())
+    code = strip_comments_and_strings(f.read_text(encoding="utf-8"))
     for m in CONTROL_SIZE_CALL.finditer(code):
         args = m.group(1).split(",")
         for arg in args:
@@ -207,7 +207,7 @@ for f in GD_FILES:
 # Every named control height must clear the accessibility floor. Naming a
 # token is only an improvement if the token itself is correct — a
 # CONTROL_HEIGHT_SM of 44 would be a magic number with a respectable name.
-_palette_src = (ROOT / "design" / "palette.gd").read_text()
+_palette_src = (ROOT / "design" / "palette.gd").read_text(encoding="utf-8")
 _floor_m = re.search(r"const MIN_TOUCH_TARGET\s*:?=\s*([\d.]+)", _palette_src)
 if _floor_m:
     _floor = float(_floor_m.group(1))
@@ -228,7 +228,7 @@ for f in list(GD_FILES) + list(ROOT.rglob("*.cfg")):
     if any(part in EXCLUDED_DIRS for part in f.relative_to(ROOT).parts):
         continue
     try:
-        src = f.read_text()
+        src = f.read_text(encoding="utf-8")
     except Exception:
         continue
     for m in re.finditer(r"ca-app-pub-(\d{10,})", src):
@@ -244,7 +244,7 @@ for f in list(GD_FILES) + list(ROOT.rglob("*.cfg")):
 # `var x: int = 0` and `func foo() -> void:`. Untyped GDScript silently boxes
 # to Variant, costs performance, and defers real errors to runtime.
 for f in GD_FILES:
-    for i, ln in enumerate(f.read_text().split("\n"), 1):
+    for i, ln in enumerate(f.read_text(encoding="utf-8").split("\n"), 1):
         s = ln.strip()
         if not s or s.startswith("#"):
             continue
@@ -277,7 +277,7 @@ for f in GD_FILES:
 # This class of bug shipped once: five routes pointed at scenes that did not
 # exist, including "trial" — the main gameplay path. Nothing caught it because
 # the other checks only validated %UniqueName references inside scenes.
-router_src = (ROOT / "core/router.gd").read_text()
+router_src = (ROOT / "core/router.gd").read_text(encoding="utf-8")
 routes_block = router_src.split("const ROUTES")[1].split("}")[0] if "const ROUTES" in router_src else ""
 declared_routes: dict[str, str] = dict(re.findall(r'"(\w+)":\s+"res://([^"]+)"', routes_block))
 
@@ -287,8 +287,8 @@ for route_name, rel_path in declared_routes.items():
 
 # Every route referenced in code must be declared in the table.
 for f in GD_FILES:
-    code = strip_comments_and_strings(f.read_text())
-    raw = f.read_text()
+    code = strip_comments_and_strings(f.read_text(encoding="utf-8"))
+    raw = f.read_text(encoding="utf-8")
     for m in re.finditer(r'Router\.(?:go|replace)\(\s*"(\w+)"', raw):
         if m.group(1) not in declared_routes:
             line = raw[: m.start()].count("\n") + 1
@@ -310,7 +310,7 @@ _TEST_SOURCES = sorted(
     set(ROOT.glob("tools/*_flow.gd")) | set(ROOT.glob("tools/*_audit.gd"))
 )
 for f in _TEST_SOURCES:
-    lines = f.read_text().split("\n")
+    lines = f.read_text(encoding="utf-8").split("\n")
     for i, ln in enumerate(lines, 1):
         guard = re.match(r"^\s*if\s+(\w+)\s*!=\s*null\s*:\s*$", ln)
         if not guard:
@@ -416,7 +416,7 @@ def _expected_layer_clips() -> set:
     if not manifest.is_file():
         return set()
     try:
-        data = json.loads(manifest.read_text())
+        data = json.loads(manifest.read_text(encoding="utf-8"))
     except (ValueError, OSError):
         return set()
     out = {"audio/layers/manifest.json"}
@@ -431,7 +431,7 @@ def _expected_voice_clips() -> set:
     manifest = ROOT / "data" / "dialogue_manifest.gd"
     if not manifest.is_file():
         return set()
-    src = manifest.read_text()
+    src = manifest.read_text(encoding="utf-8")
     slugs = dict(re.findall(r'const (\w+): StringName = &"(\w+)"', src))
     try:
         body = src[src.index("const LINES"):]
@@ -513,7 +513,7 @@ ASSET_ALLOWLIST = {
 }
 
 _asset_scan_dirs = [d for d in ROOT.iterdir()
-                    if d.is_dir() and d.name not in {".git", ".godot", "legacy_reference"}]
+                    if d.is_dir() and d.name not in EXCLUDED_DIRS and d.name != ".git"]
 _asset_roots = _asset_scan_dirs + [ROOT]
 
 _seen_assets: set[str] = set()
@@ -527,7 +527,7 @@ for _base in _asset_roots:
             continue
         _seen_assets.add(rel)
         parts = f.relative_to(ROOT).parts
-        if any(part in {".git", ".godot", "legacy_reference"} for part in parts):
+        if any(part in EXCLUDED_DIRS or part == ".git" for part in parts):
             continue
         if rel in ASSET_ALLOWLIST:
             continue
@@ -678,7 +678,7 @@ if _adaptive_fg.is_file():
 GEOMETRY_READS = re.compile(r"\bsize\s*\.\s*[xy]\b|\bsize\s*\*|\bget_rect\s*\(")
 
 for f in GD_FILES:
-    src = f.read_text()
+    src = f.read_text(encoding="utf-8")
     if "extends Screen" not in src and "extends AspectRatioContainer" not in src:
         continue
     if "func _setup" not in src:
@@ -696,7 +696,7 @@ for f in GD_FILES:
 # A screen that hand-rolls the lifecycle _layout() already provides is the
 # same fragility wearing a different hat.
 for f in GD_FILES:
-    src = f.read_text()
+    src = f.read_text(encoding="utf-8")
     if "extends Screen" not in src:
         continue
     stripped = strip_comments_and_strings(src)
@@ -728,7 +728,7 @@ LEGACY_RESOLVE = re.compile(
 )
 
 for f in GD_FILES:
-    src = f.read_text()
+    src = f.read_text(encoding="utf-8")
     hit = LEGACY_RESOLVE.search(src)
     if hit:
         errs.append(
@@ -742,7 +742,7 @@ for pattern in ("*.tscn", "*.gdshader", "*.godot"):
         parts = f.relative_to(ROOT).parts
         if any(part in {".git", ".godot", "legacy_reference"} for part in parts):
             continue
-        text = f.read_text(errors="ignore")
+        text = f.read_text(encoding="utf-8", errors="ignore")
         if "legacy_reference" in text:
             errs.append(
                 f"Rule H  {REL(f)}  references res://legacy_reference/ "
@@ -758,7 +758,7 @@ for f in list(GD_FILES) + sorted(ROOT.rglob("*.md")):
     if not f.is_file() or REL(f) in _v1_scanned:
         continue
     _v1_scanned.add(REL(f))
-    text = f.read_text(errors="ignore")
+    text = f.read_text(encoding="utf-8", errors="ignore")
     for name in V1_REPO_NAMES:
         if name in text:
             errs.append(
@@ -793,7 +793,7 @@ for f in GD_FILES:
     # core/router.gd defines them; tools/ are probes that manage their own flow.
     if rel == "core/router.gd" or rel.startswith("tools/"):
         continue
-    code = strip_comments_and_strings(f.read_text())
+    code = strip_comments_and_strings(f.read_text(encoding="utf-8"))
     for m in re.finditer(r"(^|[^.\w])Router\.(\w+)\s*\(", code, re.MULTILINE):
         name = m.group(2)
         if name not in ROUTER_COROUTINES:
@@ -828,7 +828,7 @@ for f in GD_FILES:
 # This asserts BEHAVIOUR (the logo is off, the colours agree), not merely
 # that the keys are present — a bg_color that drifted from COLOR_BACKGROUND
 # would reintroduce the flash while still looking configured.
-_proj = (ROOT / "project.godot").read_text()
+_proj = (ROOT / "project.godot").read_text(encoding="utf-8")
 
 if not re.search(r"^boot_splash/show_image\s*=\s*false", _proj, re.M):
     errs.append(

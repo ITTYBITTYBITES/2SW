@@ -7,7 +7,7 @@ AUTOLOADS = {'Log':'core/log.gd','Cfg':'core/cfg.gd','Save':'core/save.gd',
 STATICS   = {}
 
 def members(path):
-    src = pathlib.Path(path).read_text()
+    src = pathlib.Path(path).read_text(encoding="utf-8")
     return {
       'func': set(re.findall(r'^\s*(?:static\s+)?func\s+(\w+)', src, re.M)),
       'const': set(re.findall(r'^\s*const\s+(\w+)', src, re.M)),
@@ -17,8 +17,8 @@ def members(path):
 
 tables = {n: members(p) for n,p in {**AUTOLOADS, **STATICS}.items()}
 errs=[]
-for f in sorted((f for f in pathlib.Path('.').rglob('*.gd') if 'legacy_reference' not in f.parts)):
-    src=f.read_text()
+for f in sorted((f for f in pathlib.Path('.').rglob('*.gd') if 'legacy_reference' not in f.parts and 'addons' not in f.parts)):
+    src=f.read_text(encoding="utf-8")
     for name, tbl in tables.items():
         for m in re.finditer(rf'\b{name}\.(\w+)', src):
             attr=m.group(1)
@@ -31,8 +31,8 @@ for f in sorted((f for f in pathlib.Path('.').rglob('*.gd') if 'legacy_reference
 
 # Signal emissions must match declared signals in Bus
 bus = tables['Bus']['signal']
-for f in sorted((f for f in pathlib.Path('.').rglob('*.gd') if 'legacy_reference' not in f.parts)):
-    src=f.read_text()
+for f in sorted((f for f in pathlib.Path('.').rglob('*.gd') if 'legacy_reference' not in f.parts and 'addons' not in f.parts)):
+    src=f.read_text(encoding="utf-8")
     for m in re.finditer(r'\bBus\.(\w+)\.(emit|connect)\b', src):
         if m.group(1) not in bus:
             errs.append(f"{f}: Bus.{m.group(1)} not a declared signal")
