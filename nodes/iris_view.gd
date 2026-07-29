@@ -306,7 +306,27 @@ func _build_housing() -> void:
 	_housing.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_housing.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_housing.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_underlays.add_child(_housing)
+
+	# === STRUCTURAL FIX: Transparent center socket mask ===
+	# Makes the solid black center of the housing texture transparent
+	# so the procedural cyan iris shows through cleanly.
+	var mask_shader := Shader.new()
+	mask_shader.code = """
+shader_type canvas_item;
+
+void fragment() {
+	COLOR = texture(TEXTURE, UV);
+	// Make very dark pixels (the center socket) fully transparent
+	if (COLOR.r < 0.05 && COLOR.g < 0.05 && COLOR.b < 0.05) {
+		COLOR.a = 0.0;
+	}
+}
+"""
+	var mat := ShaderMaterial.new()
+	mat.shader = mask_shader
+	_housing.material = mat
+
+	_overlays.add_child(_housing)
 	_size_housing()
 
 

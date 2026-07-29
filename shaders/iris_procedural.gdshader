@@ -295,23 +295,19 @@ void fragment() {
 
 		// Polar-warped Voronoi: cells stretch radially, exactly like real
 		// stroma fibres radiating from the pupil.
-		float density = 5.0 + complexity_factor * 5.5;
-		vec2 polar = vec2(angle * 1.9, nr * 2.6);
+		// HIGHER FREQUENCY for crisp, high-definition strands
+		float density = 9.0 + complexity_factor * 8.0;
+		vec2 polar = vec2(angle * 2.8, nr * 3.8);
 		vec2 vor = voronoi_fibres(polar, density, t);
 
-		// ── LAYERED STROMA ──────────────────────────────────────────────
-		// One Voronoi layer reads as a flat cellular pattern. A real stroma
-		// is trabeculae at several scales at once: coarse radial ridges,
-		// finer fibres between them, and pigment granularity on top. Three
-		// octaves at rising frequency and falling amplitude — a fractal, the
-		// same reason clouds and bark need more than one scale.
-		float fibre_coarse = smoothstep(0.0, 0.42, vor.x) * (0.72 + 0.55 * vor.y);
+		// ── LAYERED STROMA (SHARPER) ────────────────────────────────────
+		float fibre_coarse = pow(smoothstep(0.0, 0.28, vor.x), 1.8) * (0.78 + 0.6 * vor.y);
 
-		vec2 vor_mid = voronoi_fibres(polar * 2.15 + 4.0, density, t * 0.7);
-		float fibre_mid = smoothstep(0.0, 0.34, vor_mid.x) * (0.60 + 0.70 * vor_mid.y);
+		vec2 vor_mid = voronoi_fibres(polar * 2.6 + 4.0, density * 1.3, t * 0.7);
+		float fibre_mid = pow(smoothstep(0.0, 0.22, vor_mid.x), 2.0) * (0.68 + 0.75 * vor_mid.y);
 
-		vec2 vor_fine = voronoi_fibres(polar * 4.6 + 9.0, density, t * 0.45);
-		float fibre_fine = smoothstep(0.0, 0.26, vor_fine.x);
+		vec2 vor_fine = voronoi_fibres(polar * 5.8 + 9.0, density * 1.6, t * 0.45);
+		float fibre_fine = pow(smoothstep(0.0, 0.16, vor_fine.x), 2.2);
 
 		// Sharpened with a gamma below 1: pushes the mid-tones apart and
 		// widens the gap between fibre and gap, which is what "high

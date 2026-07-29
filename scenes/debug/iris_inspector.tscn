@@ -1,0 +1,118 @@
+[gd_scene load_steps=3 format=3 uid="uid://iris_inspector_001"]
+
+[ext_resource type="PackedScene" uid="uid://c2swirisview01" path="res://nodes/iris_view.tscn" id="1_iris"]
+[ext_resource type="Script" path="res://scenes/debug/iris_inspector.gd" id="2_controller"]
+
+[node name="IrisInspector" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_controller")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.024, 0.031, 0.055, 1)
+
+[node name="IrisContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="IrisView" parent="IrisContainer" instance=ExtResource("1_iris")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="UI" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 9
+anchor_left = 0.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 320.0
+offset_bottom = -24.0
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="UI"]
+layout_mode = 2
+text = "Iris Inspector"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 20
+
+[node name="PupilDilation" type="HSlider" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 0.5
+
+[node name="PupilLabel" type="Label" parent="UI"]
+layout_mode = 2
+text = "Pupil Dilation"
+
+[node name="FiberDensity" type="HSlider" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 4.0
+max_value = 20.0
+step = 0.5
+value = 9.0
+
+[node name="FiberLabel" type="Label" parent="UI"]
+layout_mode = 2
+text = "Fiber Density"
+
+[node name="LimbalDarkness" type="HSlider" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 0.88
+
+[node name="LimbalLabel" type="Label" parent="UI"]
+layout_mode = 2
+text = "Limbal Ring Darkness"
+
+[node name="Specular" type="HSlider" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 3.0
+step = 0.1
+value = 1.0
+
+[node name="SpecularLabel" type="Label" parent="UI"]
+layout_mode = 2
+text = "Specular Gloss"
+
+[node name="Parallax" type="HSlider" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 2.0
+step = 0.05
+value = 1.0
+
+[node name="ParallaxLabel" type="Label" parent="UI"]
+layout_mode = 2
+text = "Parallax Depth"
+
+[node name="Status" type="Label" parent="UI"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Ready"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.6, 0.8, 0.6, 1)

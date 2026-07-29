@@ -1,0 +1,22 @@
+[gd_resource type="Theme" format=3]
+
+[resource]
+default_font_size = 18
+
+[resource]
+Label/font_size = 18
+
+[resource]
+Button/font_size = 18
+Button/content_margin_left = 12
+Button/content_margin_right = 12
+Button/content_margin_top = 12
+Button/content_margin_bottom = 12
+
+[resource]
+HSlider/minimum_size = Vector2(0, 40)
+VSlider/minimum_size = Vector2(40, 0)
+
+[resource]
+CheckBox/font_size = 18
+OptionButton/font_size = 18

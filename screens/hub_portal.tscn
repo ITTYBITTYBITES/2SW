@@ -25,22 +25,65 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.024, 0.031, 0.055, 1)
 
-[node name="IrisBand" type="VBoxContainer" parent="."]
+[node name="UILayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="MainLayout" type="VBoxContainer" parent="UILayer"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 80.0
-offset_top = 216.0
-offset_right = -80.0
-offset_bottom = -400.0
+offset_left = 60.0
+offset_top = 60.0
+offset_right = -60.0
+offset_bottom = -60.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme_override_constants/separation = 32
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="StatusCard" type="PanelContainer" parent="MainLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 0
+custom_minimum_size = Vector2(0, 80)
+
+[node name="Margin" type="MarginContainer" parent="MainLayout/StatusCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 14
+
+[node name="VBox" type="VBoxContainer" parent="MainLayout/StatusCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TitleLabel" type="Label" parent="MainLayout/StatusCard/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Iris"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+
+[node name="RankLabel" type="Label" parent="MainLayout/StatusCard/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Observer · Rank 1"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.78, 0.88, 0.98, 1)
+
+[node name="IrisBand" type="VBoxContainer" parent="MainLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
 alignment = 1
 
-[node name="IrisSlot" type="AspectRatioContainer" parent="IrisBand"]
+[node name="IrisSlot" type="AspectRatioContainer" parent="MainLayout/IrisBand"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -48,7 +91,7 @@ size_flags_vertical = 3
 mouse_filter = 2
 script = ExtResource("3_slot")
 
-[node name="IrisView" parent="IrisBand/IrisSlot" instance=ExtResource("2_iris")]
+[node name="IrisView" parent="MainLayout/IrisBand/IrisSlot" instance=ExtResource("2_iris")]
 unique_name_in_owner = true
 layout_mode = 2
 
@@ -104,30 +147,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="TitleLabel" type="Label" parent="Chrome"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_top = 96.0
-offset_bottom = 156.0
-grow_horizontal = 2
-mouse_filter = 2
-text = "Iris"
-horizontal_alignment = 1
-
-[node name="RankLabel" type="Label" parent="Chrome"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_top = 158.0
-offset_bottom = 192.0
-grow_horizontal = 2
-mouse_filter = 2
-text = "Observer · Rank 1"
-horizontal_alignment = 1
-
 [node name="HintLabel" type="Label" parent="Chrome"]
 unique_name_in_owner = true
 layout_mode = 1
@@ -142,4 +161,8 @@ grow_vertical = 0
 mouse_filter = 2
 text = "Drag from the Iris to travel"
 horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.88, 0.82, 0.56, 1.0)
+theme_override_font_sizes/font_size = 22
+theme_override_constants/shadow_offset_y = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
 

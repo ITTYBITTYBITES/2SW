@@ -110,7 +110,9 @@ func fitted_rect() -> Rect2:
 	# costs nothing because the art's surround is transparent anyway.
 	var fit: float = minf(size.x / src.x, size.y / src.y)
 	var drawn: Vector2 = src * fit
-	return Rect2((size - drawn) * 0.5, drawn)
+	# Always calculate relative to local (0,0) of this Control
+	var origin: Vector2 = (size - drawn) * 0.5
+	return Rect2(origin, drawn)
 
 
 func _breath() -> float:
