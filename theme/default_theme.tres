@@ -12,9 +12,6 @@ Button/content_margin_top = 16
 Button/content_margin_bottom = 16
 Button/minimum_size = Vector2(0, 64)
 
-[resource]
-Label/font_size = 36   # Title / Header override
-
 HSlider/minimum_size = Vector2(0, 40)
 VSlider/minimum_size = Vector2(40, 0)
 
