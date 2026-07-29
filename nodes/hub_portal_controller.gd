@@ -211,6 +211,7 @@ func _setup() -> void:
 	Bus.surprise_drop_earned.connect(_on_surprise_drop)
 
 	_refresh_chrome_text()
+	_setup_status_card_style()
 
 
 ## Rule B: tear down every subscription. Screen.super() handles palette.
@@ -264,6 +265,7 @@ func _on_palette_changed(_tier: int) -> void:
 	# repeated connections silently, so nothing complained.
 	_restyle_rails()
 	_refresh_chrome_text()
+	_setup_status_card_style()
 
 
 ## True when the scene contract was satisfied in _setup(). Leaves a debug
@@ -363,15 +365,15 @@ func _refresh_chrome_text() -> void:
 		return
 	if _title != null:
 		_title.text = "Iris"
-		_title.add_theme_color_override("font_color", Palette.COLOR_TEXT)
-		_title.add_theme_font_size_override(
-			"font_size", Palette.font(Palette.FONT_TITLE))
+		# FORCE explicit overrides so theme defaults cannot crush sizes
+		_title.add_theme_font_size_override("font_size", 56)
+		_title.add_theme_color_override("font_color", Color.WHITE)
 	if _rank_label != null:
 		_rank_label.text = "%s · Rank %d" % [
 			_state.current_rank_title(), _state.rank_tier]
-		_rank_label.add_theme_color_override("font_color", Palette.COLOR_TEXT_DIM)
-		_rank_label.add_theme_font_size_override(
-			"font_size", Palette.font(Palette.FONT_SMALL))
+		# FORCE explicit overrides for RankLabel
+		_rank_label.add_theme_font_size_override("font_size", 30)
+		_rank_label.add_theme_color_override("font_color", Color(0.78, 0.88, 0.98, 1.0))
 	# The hint is the only instruction on this screen, so it must describe
 	# what is ACTUALLY possible right now rather than the eventual feature.
 	if _state.nav_unlocked:
@@ -380,12 +382,50 @@ func _refresh_chrome_text() -> void:
 		_set_hint("Tap the Iris to begin your first trial")
 
 
+func _setup_status_card_style() -> void:
+	if not has_node("%StatusCard"):
+		return
+	var sc := get_node("%StatusCard") as PanelContainer
+	if sc == null:
+		return
+
+	var sb: StyleBoxFlat
+	var current_sb = sc.get_theme_stylebox("panel")
+	if current_sb is StyleBoxFlat:
+		sb = current_sb.duplicate() as StyleBoxFlat
+	else:
+		sb = StyleBoxFlat.new()
+
+	# Configure explicit glass banner properties
+	sb.bg_color = Color(0.043, 0.055, 0.090, 0.88)
+	sb.border_width_left = 1
+	sb.border_width_top = 2
+	sb.border_width_right = 1
+	sb.border_width_bottom = 1
+	sb.corner_radius_top_left = 16
+	sb.corner_radius_top_right = 16
+	sb.corner_radius_bottom_right = 16
+	sb.corner_radius_bottom_left = 16
+	sb.shadow_color = Color(0, 0, 0, 0.45)
+	sb.shadow_size = 12
+	sb.shadow_offset = Vector2(0, 3)
+
+	# Apply dynamic rank accent
+	var accent := Palette.accent() if Palette.has_method("accent") else Color(0.22, 0.72, 0.78)
+	accent.a = 0.38
+	sb.border_color = accent
+
+	# Explicitly assign back as stylebox override
+	sc.add_theme_stylebox_override("panel", sb)
+
+
 func _set_hint(text: String) -> void:
 	if not _operational("_set_hint"):
 		return
 	_hint.text = text
 	_hint.add_theme_color_override("font_color", Palette.COLOR_TEXT_FAINT)
-	_hint.add_theme_font_size_override("font_size", Palette.font(Palette.FONT_SMALL))
+	# Make the gold instruction prompt highly visible on mobile
+	_hint.add_theme_font_size_override("font_size", 28)
 
 
 # ═════════════════════════════════════════════════════════════════════════

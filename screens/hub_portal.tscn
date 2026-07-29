@@ -5,6 +5,25 @@
 [ext_resource type="Script" path="res://ui/square_slot.gd" id="3_slot"]
 [ext_resource type="Script" path="res://ui/hub_sidebar.gd" id="4_sidebar"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status"]
+bg_color = Color(0.043, 0.055, 0.090, 0.88)
+border_width_left = 1
+border_width_top = 2
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.22, 0.72, 0.78, 0.34)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 12
+shadow_offset = Vector2(0, 3)
+content_margin_left = 24
+content_margin_right = 24
+content_margin_top = 14
+content_margin_bottom = 14
+
 [node name="HubPortal" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -44,31 +63,36 @@ mouse_filter = 2
 theme_override_constants/separation = 32
 self_modulate = Color(1, 1, 1, 1)
 
-[node name="StatusCard" type="PanelContainer" parent="MainLayout"]
+[node name="StatusCard" type="PanelContainer" parent="UILayer/MainLayout"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 0
 custom_minimum_size = Vector2(0, 80)
+theme_override_styles/panel = SubResource("StyleBoxFlat_status")
+theme_override_constants/content_margin_left = 0
+theme_override_constants/content_margin_right = 0
+theme_override_constants/content_margin_top = 0
+theme_override_constants/content_margin_bottom = 0
 
-[node name="Margin" type="MarginContainer" parent="MainLayout/StatusCard"]
+[node name="Margin" type="MarginContainer" parent="UILayer/MainLayout/StatusCard"]
 layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 14
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 14
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 16
 
-[node name="VBox" type="VBoxContainer" parent="MainLayout/StatusCard/Margin"]
+[node name="VBox" type="VBoxContainer" parent="UILayer/MainLayout/StatusCard/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="TitleLabel" type="Label" parent="MainLayout/StatusCard/Margin/VBox"]
+[node name="TitleLabel" type="Label" parent="UILayer/MainLayout/StatusCard/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Iris"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 28
 
-[node name="RankLabel" type="Label" parent="MainLayout/StatusCard/Margin/VBox"]
+[node name="RankLabel" type="Label" parent="UILayer/MainLayout/StatusCard/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Observer · Rank 1"
@@ -76,14 +100,14 @@ horizontal_alignment = 1
 theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(0.78, 0.88, 0.98, 1)
 
-[node name="IrisBand" type="VBoxContainer" parent="MainLayout"]
+[node name="IrisBand" type="VBoxContainer" parent="UILayer/MainLayout"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 alignment = 1
 
-[node name="IrisSlot" type="AspectRatioContainer" parent="MainLayout/IrisBand"]
+[node name="IrisSlot" type="AspectRatioContainer" parent="UILayer/MainLayout/IrisBand"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -91,7 +115,7 @@ size_flags_vertical = 3
 mouse_filter = 2
 script = ExtResource("3_slot")
 
-[node name="IrisView" parent="MainLayout/IrisBand/IrisSlot" instance=ExtResource("2_iris")]
+[node name="IrisView" parent="UILayer/MainLayout/IrisBand/IrisSlot" instance=ExtResource("2_iris")]
 unique_name_in_owner = true
 layout_mode = 2
 
@@ -155,7 +179,7 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = -394.0
-offset_bottom = -358.0
+offset_bottom = -80.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
