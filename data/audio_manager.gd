@@ -226,6 +226,10 @@ func _build_players() -> void:
 	_voice_player = _make_player("IrisVoice")
 	_sfx_player = _make_player("IrisSfx")
 
+	# Route SFX to dedicated bus (prevents direct Master routing)
+	if _sfx_player != null:
+		_sfx_player.bus = &"SFX"
+
 	_build_voice_bus()
 
 	# The clip player carries pre-rendered speech and routes through the
@@ -633,6 +637,9 @@ func play_sfx(sfx_type: StringName) -> void:
 	var decay: float = float(config.get("decay", 0.15))
 	var harmonics: int = int(config.get("harmonics", 3))
 	var noise_amount: float = float(config.get("noise", 0.0))
+
+	# Anti-stacking / harshness protection for rapid UI taps
+	_sfx_player.pitch_scale = _rng.randf_range(0.96, 1.04)
 
 	_sfx_player.play()
 	var playback: AudioStreamGeneratorPlayback = \
